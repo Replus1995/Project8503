@@ -87,6 +87,11 @@ Win32Window::Win32Window(const std::string& title, int sizeX, int sizeY, bool fu
 	winMouse->Wake();
 	winKeyboard->Wake();
 
+	//set cursor//
+	auto cursor = LoadCursor(NULL, IDC_APPSTARTING);
+	SetCursor(cursor);
+	//set cursor//
+
 	LockMouseToWindow(lockMouse);
 	ShowOSPointer(showMouse);
 
