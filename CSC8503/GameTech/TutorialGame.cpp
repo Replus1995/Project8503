@@ -259,8 +259,8 @@ void TutorialGame::BridgeConstraintTest() {
 A single function to add a large immoveable cube to the bottom of our world
 
 */
-GameObject* TutorialGame::AddFloorToWorld(const Vector3& position) {
-	GameObject* floor = new GameObject();
+GameObject* TutorialGame::AddFloorToWorld(const Vector3& position, const std::string& name) {
+	GameObject* floor = new GameObject(name);
 
 	Vector3 floorSize	= Vector3(100, 2, 100);
 	AABBVolume* volume	= new AABBVolume(floorSize);
@@ -287,8 +287,8 @@ rigid body representation. This and the cube function will let you build a lot o
 physics worlds. You'll probably need another function for the creation of OBB cubes too.
 
 */
-GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius, float inverseMass) {
-	GameObject* sphere = new GameObject();
+GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius, float inverseMass, const std::string& name) {
+	GameObject* sphere = new GameObject(name);
 
 	Vector3 sphereSize = Vector3(radius, radius, radius);
 	SphereVolume* volume = new SphereVolume(radius);
@@ -309,8 +309,8 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 	return sphere;
 }
 
-GameObject* TutorialGame::AddCapsuleToWorld(const Vector3& position, float halfHeight, float radius, float inverseMass) {
-	GameObject* capsule = new GameObject();
+GameObject* TutorialGame::AddCapsuleToWorld(const Vector3& position, float halfHeight, float radius, float inverseMass, const std::string& name) {
+	GameObject* capsule = new GameObject(name);
 
 	CapsuleVolume* volume = new CapsuleVolume(halfHeight, radius);
 	capsule->SetBoundingVolume((CollisionVolume*)volume);
@@ -331,8 +331,8 @@ GameObject* TutorialGame::AddCapsuleToWorld(const Vector3& position, float halfH
 
 }
 
-GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass) {
-	GameObject* cube = new GameObject();
+GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, const std::string& name) {
+	GameObject* cube = new GameObject(name);
 
 	AABBVolume* volume = new AABBVolume(dimensions);
 
@@ -360,7 +360,7 @@ void TutorialGame::InitSphereGridWorld(int numRows, int numCols, float rowSpacin
 			AddSphereToWorld(position, radius, 1.0f);
 		}
 	}
-	AddFloorToWorld(Vector3(0, -2, 0));
+	AddFloorToWorld(Vector3(0, -2, 0), "SphereGridFloor");
 }
 
 void TutorialGame::InitMixedGridWorld(int numRows, int numCols, float rowSpacing, float colSpacing) {
@@ -372,10 +372,10 @@ void TutorialGame::InitMixedGridWorld(int numRows, int numCols, float rowSpacing
 			Vector3 position = Vector3(x * colSpacing, 10.0f, z * rowSpacing);
 
 			if (rand() % 2) {
-				AddCubeToWorld(position, cubeDims);
+				AddCubeToWorld(position, cubeDims, 10.0f, "Cube_"+ std::to_string(x * numRows + z));
 			}
 			else {
-				AddSphereToWorld(position, sphereRadius);
+				AddSphereToWorld(position, sphereRadius, 10.0f, "Sphere_" + std::to_string(x * numRows + z));
 			}
 		}
 	}
@@ -391,21 +391,21 @@ void TutorialGame::InitCubeGridWorld(int numRows, int numCols, float rowSpacing,
 }
 
 void TutorialGame::InitDefaultFloor() {
-	AddFloorToWorld(Vector3(0, -2, 0));
+	AddFloorToWorld(Vector3(0, -2, 0), "DefaultFloor");
 }
 
 void TutorialGame::InitGameExamples() {
-	AddPlayerToWorld(Vector3(0, 5, 0));
-	AddEnemyToWorld(Vector3(5, 5, 0));
-	AddBonusToWorld(Vector3(10, 5, 0));
-	AddCapsuleToWorld(Vector3(15, 5, 0), 2, 1);
+	AddPlayerToWorld(Vector3(0, 5, 0), "DefaultPlayer");
+	AddEnemyToWorld(Vector3(5, 5, 0), "DefaultEnemy");
+	AddBonusToWorld(Vector3(10, 5, 0), "Bonus");
+	AddCapsuleToWorld(Vector3(15, 5, 0), 2, 1, 10.0f, "TestCapsule");
 }
 
-GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position) {
+GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position, const std::string& name) {
 	float meshSize = 3.0f;
 	float inverseMass = 0.5f;
 
-	GameObject* character = new GameObject();
+	GameObject* character = new GameObject(name);
 
 	AABBVolume* volume = new AABBVolume(Vector3(0.3f, 0.85f, 0.3f) * meshSize);
 
@@ -433,11 +433,11 @@ GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position) {
 	return character;
 }
 
-GameObject* TutorialGame::AddEnemyToWorld(const Vector3& position) {
+GameObject* TutorialGame::AddEnemyToWorld(const Vector3& position, const std::string& name) {
 	float meshSize		= 3.0f;
 	float inverseMass	= 0.5f;
 
-	GameObject* character = new GameObject();
+	GameObject* character = new GameObject(name);
 
 	AABBVolume* volume = new AABBVolume(Vector3(0.3f, 0.9f, 0.3f) * meshSize);
 	character->SetBoundingVolume((CollisionVolume*)volume);
@@ -457,8 +457,8 @@ GameObject* TutorialGame::AddEnemyToWorld(const Vector3& position) {
 	return character;
 }
 
-GameObject* TutorialGame::AddBonusToWorld(const Vector3& position) {
-	GameObject* apple = new GameObject();
+GameObject* TutorialGame::AddBonusToWorld(const Vector3& position, const std::string& name) {
+	GameObject* apple = new GameObject(name);
 
 	SphereVolume* volume = new SphereVolume(0.25f);
 	apple->SetBoundingVolume((CollisionVolume*)volume);
