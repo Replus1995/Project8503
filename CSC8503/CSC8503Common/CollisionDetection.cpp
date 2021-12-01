@@ -86,7 +86,7 @@ bool CollisionDetection::RayBoxIntersection(const Ray&r, const Vector3& boxPos, 
 	return true;
 }
 
-bool NCL::CollisionDetection::RayCylinderIntersection(const Ray& r, const float halfHeight, const float radius, RayCollision& collision)
+int CollisionDetection::RayCylinderIntersection(const Ray& r, const float halfHeight, const float radius, RayCollision& collision)
 {
 	Vector3 rayPos = r.GetPosition();
 	Vector3 rayDir = r.GetDirection();
@@ -97,74 +97,84 @@ bool NCL::CollisionDetection::RayCylinderIntersection(const Ray& r, const float 
 	float hMin = halfHeight * -1;
 	if (a == 0)
 	{
-		if (c == 0)
+		if (c <= 0)
 		{
-			if (rayPos.y > hMax)
-			{
-				collision.collidedAt = Vector3(rayPos.x, hMax, rayPos.z);
-				collision.rayDistance = rayPos.y - hMax;
-			}
-			else if (rayPos.y < hMin)
-			{
-				collision.collidedAt = Vector3(rayPos.x, hMin, rayPos.z);
-				collision.rayDistance = hMin - rayPos.y;
-			}
-			else
-			{
-				collision.collidedAt = rayPos;
-				collision.rayDistance = 0;
-			}
-			return true;
+			float posY = Maths::Clamp(rayPos.y, hMin, hMax);
+			collision.collidedAt = Vector3(rayPos.x, posY, rayPos.z);
+			collision.rayDistance = abs(rayPos.y - posY);
+			return 0;
 		}
 		else
 		{
-			return false;
+			return -2;
 		}
 	}
 
 	float b2_4ac = b * b - 4 * a * c;
 	if (b2_4ac < 0)
 	{
-		return false;
+		return -2;
 	}
+
+	std::vector<float> validTs;
 
 	float t1 = (-1 * b + sqrt(b2_4ac)) / (2 * a);
 	float t2 = (-1 * b - sqrt(b2_4ac)) / (2 * a);
 	float h1 = rayPos.y + t1 * rayDir.y;
 	float h2 = rayPos.y + t2 * rayDir.y;
-	bool b_t1_valid = false;
-	bool b_t2_valid = false;
+
 	if (h1 >= hMin && h1 <= hMax && t1 >= 0)
 	{
-		b_t1_valid = true;
+		validTs.push_back(t1);
 	}
 	if (h2 >= hMin && h2 <= hMax && t2 >= 0)
 	{
-		b_t2_valid = true;
+		validTs.push_back(t2);
 	}
 
-	float tMin = 0.0f;
-	if (b_t1_valid && b_t2_valid)
+	float tTop = (hMax - rayPos.y) / rayDir.y;
+	Vector2 xzTop(rayPos.x + tTop * rayDir.x, rayPos.z + tTop * rayDir.z);
+	if (tTop >= 0 && xzTop.Length() < radius)
 	{
-		tMin = min(t1, t2);	
+		validTs.push_back(tTop);
 	}
-	else if (b_t1_valid)
+
+	float tBottom = (hMin - rayPos.y) / rayDir.y;
+	Vector2 xzBottom(rayPos.x + tBottom * rayDir.x, rayPos.z + tBottom * rayDir.z);
+	if (tBottom >= 0 && xzBottom.Length() < radius)
 	{
-		tMin = t1;
+		validTs.push_back(tBottom);
 	}
-	else if (b_t2_valid)
+
+	if (validTs.empty())
 	{
-		tMin = t2;
+		if (h1 > hMax && h2 > hMax)
+		{
+			return 1;
+		}
+		else if (h1 < hMin && h2 < hMin)
+		{
+			return -1;
+		}
+		else
+		{
+			return -2;
+		}
 	}
-	else
+
+	float tMin = FLT_MAX;
+	for (size_t i = 0; i < validTs.size(); i++)
 	{
-		return false;
+		if (validTs[i] < tMin)
+		{
+			tMin = validTs[i];
+		}
 	}
 
 	collision.collidedAt = rayPos + rayDir * tMin;
 	collision.rayDistance = tMin;
 
-	return true;
+	return 0;
 }
 
 bool CollisionDetection::RayAABBIntersection(const Ray&r, const Transform& worldTransform, const AABBVolume& volume, RayCollision& collision) {
@@ -198,10 +208,20 @@ bool CollisionDetection::RayCapsuleIntersection(const Ray& r, const Transform& w
 	Matrix3 invTranfrom = Matrix3(orientation.Conjugate());
 	Vector3 localRayPos = r.GetPosition() - position;
 	Ray tempRay(invTranfrom * localRayPos, invTranfrom * r.GetDirection());
-	bool cylinderCollided = RayCylinderIntersection(tempRay, cylinderHalfHeight, volume.GetRadius(), collision);
-	if (cylinderCollided)
+	int cylinderCollided = RayCylinderIntersection(tempRay, cylinderHalfHeight, volume.GetRadius(), collision);
+	if (cylinderCollided == 0)
 	{
-		collision.collidedAt = transform * collision.collidedAt + position;
+		float collisionRadius = sqrt(collision.collidedAt.x * collision.collidedAt.x + collision.collidedAt.z * collision.collidedAt.z);
+		if (collision.collidedAt.y < cylinderHalfHeight && collision.collidedAt.y > -cylinderHalfHeight 
+			|| collisionRadius == volume.GetRadius())
+		{
+			collision.collidedAt = transform * collision.collidedAt + position;
+			return true;
+		}
+	}
+	else if (cylinderCollided < -1)
+	{
+		return false;
 	}
 
 	Vector3 up = transform.GetColumn(1);
@@ -209,7 +229,19 @@ bool CollisionDetection::RayCapsuleIntersection(const Ray& r, const Transform& w
 	RayCollision sphereCollision;
 	Transform sphereTranform = worldTransform;
 
-	sphereTranform.SetPosition(position + up * cylinderHalfHeight);
+
+	if (cylinderCollided == 0)
+	{
+		sphereTranform.SetPosition(position + up * collision.collidedAt.y);
+		return RaySphereIntersection(r, sphereTranform, sphereVolume, collision);
+	}
+	else
+	{
+		sphereTranform.SetPosition(position + up * cylinderHalfHeight * cylinderCollided);
+		return RaySphereIntersection(r, sphereTranform, sphereVolume, collision);
+	}
+	
+	/*sphereTranform.SetPosition(position + up * cylinderHalfHeight);
 	bool sphere1Collided = RaySphereIntersection(r, sphereTranform, sphereVolume, sphereCollision);
 	if (sphere1Collided)
 	{
@@ -229,7 +261,7 @@ bool CollisionDetection::RayCapsuleIntersection(const Ray& r, const Transform& w
 		}
 	}
 
-	return cylinderCollided | sphere1Collided | sphere2Collided;
+	return cylinderCollided | sphere1Collided | sphere2Collided;*/
 }
 
 bool CollisionDetection::RaySphereIntersection(const Ray&r, const Transform& worldTransform, const SphereVolume& volume, RayCollision& collision) {
@@ -467,30 +499,195 @@ bool CollisionDetection::ObjectIntersection(GameObject* a, GameObject* b, Collis
 }
 
 bool CollisionDetection::AABBTest(const Vector3& posA, const Vector3& posB, const Vector3& halfSizeA, const Vector3& halfSizeB) {
+	Vector3 delta = posB - posA;
+	Vector3 totalSize = halfSizeA + halfSizeB;
+	if (abs(delta.x) < totalSize.x &&
+		abs(delta.y) < totalSize.y &&
+		abs(delta.z) < totalSize.z)
+	{
+		return true;
+	}
 	return false;
+}
+
+void CollisionDetection::SATMinMax(const Vector3& axis, const std::vector<Vector3>& points, float& minA, float& maxA)
+{
+	minA = FLT_MAX;
+	maxA = -FLT_MAX;
+	for (const Vector3& point : points)
+	{
+		float dotVal = Vector3::Dot(point, axis);
+		if (dotVal < minA) minA = dotVal;
+		if (dotVal > maxA) maxA = dotVal;
+	}
+}
+
+bool CollisionDetection::SATOverlap(float minA, float maxA, float minB, float maxB)
+{
+	return ValueBetween(minB, minA, maxA) || ValueBetween(minA, minB, maxB);
+}
+
+bool CollisionDetection::ValueBetween(float value, float min, float max)
+{
+	return min <= value && value <= max;
 }
 
 //AABB/AABB Collisions
 bool CollisionDetection::AABBIntersection(const AABBVolume& volumeA, const Transform& worldTransformA,
 	const AABBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
+	Vector3 boxAPos = worldTransformA.GetPosition();
+	Vector3 boxBPos = worldTransformB.GetPosition();
+	Vector3 boxASize = volumeA.GetHalfDimensions();
+	Vector3 boxBSize = volumeB.GetHalfDimensions();
+	bool overlap = AABBTest(boxAPos, boxBPos, boxASize, boxBSize);
+	if (overlap)
+	{
+		static const Vector3 faces[6] =
+		{
+			Vector3(-1, 0, 0), Vector3(1, 0, 0),
+			Vector3(0, -1, 0), Vector3(0, 1, 0),
+			Vector3(0, 0, -1), Vector3(0, 0, 1)
+		};
+
+		Vector3 maxA = boxAPos + boxASize;
+		Vector3 minA = boxAPos - boxASize;
+		Vector3 maxB = boxBPos + boxBSize;
+		Vector3 minB = boxBPos - boxBSize;
+
+		float distance[6] =
+		{
+			(maxB.x - minA.x),
+			(maxA.x - minB.x),
+			(maxB.y - minA.y),
+			(maxA.y - minB.y),
+			(maxB.z - minA.z),
+			(maxA.z - minB.z)
+		};
+		float penetration = FLT_MAX;
+		Vector3 bestAxis;
+		for (int i = 0; i < 6; i++)
+		{
+			if (distance[i] < penetration)
+			{
+				penetration = distance[i];
+				bestAxis = faces[i];
+			}
+		}
+		collisionInfo.AddContactPoint(Vector3(), Vector3(), bestAxis, penetration);
+		return true;
+	}
 	return false;
 }
 
 //Sphere / Sphere Collision
 bool CollisionDetection::SphereIntersection(const SphereVolume& volumeA, const Transform& worldTransformA,
 	const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
+
+	float radii = volumeA.GetRadius() + volumeB.GetRadius();
+	Vector3 delta = worldTransformB.GetPosition() - worldTransformA.GetPosition();
+	float deltaLength = delta.Length();
+	if (deltaLength < radii)
+	{
+		float penetration = radii - deltaLength;
+		Vector3 normal = delta.Normalised();
+		Vector3 localA = normal * volumeA.GetRadius();
+		Vector3 localB = -normal * volumeB.GetRadius();
+		collisionInfo.AddContactPoint(localA, localB, normal, penetration);
+		return true;
+	}
 	return false;
 }
 
 //AABB - Sphere Collision
 bool CollisionDetection::AABBSphereIntersection(const AABBVolume& volumeA, const Transform& worldTransformA,
 	const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
+	Vector3 boxSize = volumeA.GetHalfDimensions();
+	Vector3 delta = worldTransformB.GetPosition() - worldTransformA.GetPosition();
+	Vector3 closestPointOnBox = Maths::Clamp(delta, -boxSize, boxSize);
+	Vector3 localPoint = delta - closestPointOnBox;
+	float distance = localPoint.Length();
+	if (distance < volumeB.GetRadius())
+	{
+		Vector3 collisionNormal = localPoint.Normalised();
+		float penetration = volumeB.GetRadius() - distance;
+		Vector3 localA = Vector3();
+		Vector3 localB = -collisionNormal * volumeB.GetRadius();
+
+		collisionInfo.AddContactPoint(localA, localB, collisionNormal, penetration);
+		return true;
+	}
 	return false;
 }
 
 bool CollisionDetection::OBBIntersection(
 	const OBBVolume& volumeA, const Transform& worldTransformA,
 	const OBBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
+
+	static const Vector3 cornerScales[8] = { Vector3(-1,-1,-1), Vector3(1,-1,-1), Vector3(-1,1,-1), Vector3(-1,-1,1),
+											Vector3(1,1,-1), Vector3(1,-1,1), Vector3(-1,1,1), Vector3(1,1,1) };
+	Vector3 aPos = worldTransformA.GetPosition();
+	Vector3 bPos = worldTransformB.GetPosition();
+	Vector3 aSize = volumeA.GetHalfDimensions();
+	Vector3 bSize = volumeB.GetHalfDimensions();
+
+	std::vector<Vector3> aCorners(8);
+	std::vector<Vector3> bCorners(8);
+	for (int i = 0; i < 8; i++)
+	{
+		aCorners[i] = worldTransformA.GetMatrix() * (aSize * cornerScales[i]);
+		bCorners[i] = worldTransformB.GetMatrix() * (bSize * cornerScales[i]);
+	}
+
+	bool collided = false;
+
+	// Test A normals
+	Matrix3 aRotation = Matrix3(worldTransformA.GetOrientation());
+	for (int i = 0; i < 3; i++)
+	{
+		Vector3 normal = aRotation.GetColumn(i);
+		float aMax = Vector3::Dot(aPos, normal) + aSize[i] ;
+		float aMin = Vector3::Dot(aPos, normal) - aSize[i];
+		float bMin = 0.0f, bMax = 0.0f;
+		SATMinMax(normal, bCorners, bMin, bMax);
+		if (!SATOverlap(aMin, aMax, bMin, bMax))
+		{
+			return false;
+		}
+	}
+
+	// Test B normals
+	Matrix3 bRotation = Matrix3(worldTransformB.GetOrientation());
+	for (int i = 0; i < 3; i++)
+	{
+		Vector3 normal = bRotation.GetColumn(i);
+		float bMax = Vector3::Dot(bPos, normal) + bSize[i];
+		float bMin = Vector3::Dot(bPos, normal) - bSize[i];
+		float aMin = 0.0f, aMax = 0.0f;
+		SATMinMax(normal, aCorners, aMin, aMax);
+		if (!SATOverlap(bMin, bMax, aMin, aMax))
+		{
+			return false;
+		}
+	}
+
+	// Test cross product of normals 
+	for (int i = 0; i < 3; i++)
+	{
+		Vector3 normalA = aRotation.GetColumn(i);
+		for (int j = 0; j < 3; j++)
+		{
+			Vector3 normalB = aRotation.GetColumn(i);
+			Vector3 normal = Vector3::Cross(normalA, normalB);
+			float aMin = 0.0f, aMax = 0.0f;
+			float bMin = 0.0f, bMax = 0.0f;
+			SATMinMax(normal, aCorners, aMin, aMax);
+			SATMinMax(normal, bCorners, bMin, bMax);
+			if (!SATOverlap(bMin, bMax, aMin, aMax))
+			{
+				return false;
+			}
+		}
+	}
 	return false;
 }
 

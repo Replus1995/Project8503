@@ -64,7 +64,7 @@ namespace NCL {
 
 		//TODO ADD THIS PROPERLY
 		static bool RayBoxIntersection(const Ray&r, const Vector3& boxPos, const Vector3& boxSize, RayCollision& collision);
-		static bool RayCylinderIntersection(const Ray& r, const float halfHeight, const float radius, RayCollision& collision);
+		static int RayCylinderIntersection(const Ray& r, const float halfHeight, const float radius, RayCollision& collision);
 
 		static Ray BuildRayFromMouse(const Camera& c);
 
@@ -80,6 +80,9 @@ namespace NCL {
 		static bool RayPlaneIntersection(const Ray&r, const Plane&p, RayCollision& collisions);
 
 		static bool	AABBTest(const Vector3& posA, const Vector3& posB, const Vector3& halfSizeA, const Vector3& halfSizeB);
+		static void SATMinMax(const Vector3& axis, const std::vector<Vector3>& points, float& minA, float& maxA);
+		static bool SATOverlap(float minA, float maxA, float minB, float maxB);
+		static bool ValueBetween(float value, float min, float max);
 
 
 		static bool ObjectIntersection(GameObject* a, GameObject* b, CollisionInfo& collisionInfo);
