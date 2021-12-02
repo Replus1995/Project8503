@@ -226,9 +226,7 @@ bool CollisionDetection::RayCapsuleIntersection(const Ray& r, const Transform& w
 
 	Vector3 up = transform.GetColumn(1);
 	SphereVolume sphereVolume(volume.GetRadius());
-	RayCollision sphereCollision;
 	Transform sphereTranform = worldTransform;
-
 
 	if (cylinderCollided == 0)
 	{
@@ -240,28 +238,6 @@ bool CollisionDetection::RayCapsuleIntersection(const Ray& r, const Transform& w
 		sphereTranform.SetPosition(position + up * cylinderHalfHeight * cylinderCollided);
 		return RaySphereIntersection(r, sphereTranform, sphereVolume, collision);
 	}
-	
-	/*sphereTranform.SetPosition(position + up * cylinderHalfHeight);
-	bool sphere1Collided = RaySphereIntersection(r, sphereTranform, sphereVolume, sphereCollision);
-	if (sphere1Collided)
-	{
-		if (sphereCollision.rayDistance < collision.rayDistance)
-		{
-			collision = sphereCollision;
-		}
-	}
-
-	sphereTranform.SetPosition(position - up * cylinderHalfHeight);
-	bool sphere2Collided = RaySphereIntersection(r, sphereTranform, sphereVolume, sphereCollision);
-	if (sphere2Collided)
-	{
-		if (sphereCollision.rayDistance < collision.rayDistance)
-		{
-			collision = sphereCollision;
-		}
-	}
-
-	return cylinderCollided | sphere1Collided | sphere2Collided;*/
 }
 
 bool CollisionDetection::RaySphereIntersection(const Ray&r, const Transform& worldTransform, const SphereVolume& volume, RayCollision& collision) {

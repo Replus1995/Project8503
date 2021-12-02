@@ -4,6 +4,7 @@
 #include "../../Plugins/OpenGLRendering/OGLShader.h"
 #include "../../Plugins/OpenGLRendering/OGLTexture.h"
 #include "../../Common/TextureLoader.h"
+#include "../CSC8503Common/PositionConstraint.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -250,7 +251,26 @@ void TutorialGame::InitWorld() {
 }
 
 void TutorialGame::BridgeConstraintTest() {
+	Vector3 cubeSize = Vector3(8, 8, 8);
 
+	float invCubeMass = 5;
+	int numLinks = 10;
+	float maxDistance = 30;
+	float cubeDistance = 20;
+
+	Vector3 startPos = Vector3(50, 50, 50);
+	GameObject* start = AddCubeToWorld(startPos + Vector3(0, 0, 0), cubeSize, 0, "BridgeStart");
+	GameObject* end = AddCubeToWorld(startPos + Vector3((numLinks + 2) * cubeDistance, 0, 0), cubeSize, 0, "BridgeEnd");
+	GameObject* previous = start;
+	for (int i = 0; i < numLinks; i++)
+	{
+		GameObject* block = AddCubeToWorld(startPos + Vector3((i + 1) * cubeDistance, 0, 0), cubeSize, invCubeMass, "BridgeBlock_" + std::to_string(i));
+		PositionConstraint* constraint = new PositionConstraint(previous, block, maxDistance);
+		world->AddConstraint(constraint);
+		previous = block;
+	}
+	PositionConstraint* constraint = new PositionConstraint(previous, end, maxDistance);
+	world->AddConstraint(constraint);
 
 }
 
@@ -399,6 +419,8 @@ void TutorialGame::InitGameExamples() {
 	AddEnemyToWorld(Vector3(5, 5, 0), "DefaultEnemy");
 	AddBonusToWorld(Vector3(10, 5, 0), "Bonus");
 	AddCapsuleToWorld(Vector3(15, 5, 0), 2, 1, 10.0f, "TestCapsule");
+
+	BridgeConstraintTest();
 }
 
 GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position, const std::string& name) {
