@@ -251,12 +251,12 @@ void TutorialGame::InitWorld() {
 }
 
 void TutorialGame::BridgeConstraintTest() {
-	Vector3 cubeSize = Vector3(8, 8, 8);
+	Vector3 cubeSize = Vector3(1, 1, 1);
 
 	float invCubeMass = 5;
 	int numLinks = 10;
-	float maxDistance = 30;
-	float cubeDistance = 20;
+	float maxDistance = 4;
+	float cubeDistance = 3;
 
 	Vector3 startPos = Vector3(50, 50, 50);
 	GameObject* start = AddCubeToWorld(startPos + Vector3(0, 0, 0), cubeSize, 0, "BridgeStart");
@@ -373,6 +373,29 @@ GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimens
 	return cube;
 }
 
+GameObject* TutorialGame::AddCubeToWorld_OBB(const Vector3& position, Vector3 dimensions, float inverseMass, const std::string& name)
+{
+	GameObject* cube = new GameObject(name);
+
+	OBBVolume* volume = new OBBVolume(dimensions);
+
+	cube->SetBoundingVolume((CollisionVolume*)volume);
+
+	cube->GetTransform()
+		.SetPosition(position)
+		.SetScale(dimensions * 2);
+
+	cube->SetRenderObject(new RenderObject(&cube->GetTransform(), cubeMesh, basicTex, basicShader));
+	cube->SetPhysicsObject(new PhysicsObject(&cube->GetTransform(), cube->GetBoundingVolume()));
+
+	cube->GetPhysicsObject()->SetInverseMass(inverseMass);
+	cube->GetPhysicsObject()->InitCubeInertia();
+
+	world->AddGameObject(cube);
+
+	return cube;
+}
+
 void TutorialGame::InitSphereGridWorld(int numRows, int numCols, float rowSpacing, float colSpacing, float radius) {
 	for (int x = 0; x < numCols; ++x) {
 		for (int z = 0; z < numRows; ++z) {
@@ -421,6 +444,10 @@ void TutorialGame::InitGameExamples() {
 	AddCapsuleToWorld(Vector3(15, 5, 0), 2, 1, 10.0f, "TestCapsule");
 
 	BridgeConstraintTest();
+
+	AddCubeToWorld_OBB(Vector3(0, 20, 0), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB");
+	AddSphereToWorld(Vector3(5, 20, 0), 1.0f, 10.0f, "TestCollision_Sphere");
+	
 }
 
 GameObject* TutorialGame::AddPlayerToWorld(const Vector3& position, const std::string& name) {
