@@ -617,7 +617,11 @@ void TutorialGame::MoveSelectedObject() {
 		{
 			if (closestCollision.node == selectionObject)
 			{
-				selectionObject->GetPhysicsObject()->AddForceAtPosition(ray.GetDirection() * forceMagnitude, closestCollision.collidedAt);
+				const CollisionVolume* volume = selectionObject->GetBoundingVolume();
+				if (volume->type == VolumeType::AABB)
+					selectionObject->GetPhysicsObject()->AddForce(ray.GetDirection() * forceMagnitude);
+				else
+					selectionObject->GetPhysicsObject()->AddForceAtPosition(ray.GetDirection() * forceMagnitude, closestCollision.collidedAt);	
 			}
 		}
 	}
