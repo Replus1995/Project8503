@@ -80,27 +80,34 @@ namespace NCL {
 		static bool RayPlaneIntersection(const Ray&r, const Plane&p, RayCollision& collisions);
 
 		static bool	AABBTest(const Vector3& posA, const Vector3& posB, const Vector3& halfSizeA, const Vector3& halfSizeB);
-		static void SATMinMax(const Vector3& axis, const std::vector<Vector3>& points, float& minA, float& maxA);
-		static bool SATOverlap(float minA, float maxA, float minB, float maxB);
-		static bool ValueBetween(float value, float min, float max);
+		static bool SATTest(const Vector3& sizeA, const Matrix3& rotationA, const Vector3& sizeB, const Matrix3& rotationB,
+										const Vector3& centerDist, const Vector3& axis, float& overlap);
+		static float ValueSign(float value);
+		static float Mat3Val(const Matrix3& matrix, int i, int j);
+
+		static Vector3 FindContactPointOnBox(const Vector3& boxSize, const Vector3& localNormal);
 
 
 		static bool ObjectIntersection(GameObject* a, GameObject* b, CollisionInfo& collisionInfo);
 
 
-		static bool AABBIntersection(	const AABBVolume& volumeA, const Transform& worldTransformA,
+		static bool AABBIntersection(const AABBVolume& volumeA, const Transform& worldTransformA,
 										const AABBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
 
-		static bool SphereIntersection(	const SphereVolume& volumeA, const Transform& worldTransformA,
+		static bool SphereIntersection(const SphereVolume& volumeA, const Transform& worldTransformA,
 										const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
 		static bool BoxSphereIntersection(const Vector3& boxSize, const Vector3& boxPos,
 										float sphereRadius, const Vector3& spherePos, CollisionInfo& collisionInfo);
-		static bool AABBSphereIntersection(	const AABBVolume& volumeA, const Transform& worldTransformA,
+		static bool AABBSphereIntersection(const AABBVolume& volumeA, const Transform& worldTransformA,
 										const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
 		static bool OBBSphereIntersection(const OBBVolume& volumeA, const Transform& worldTransformA,
 										const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
 
-		static bool OBBIntersection(	const OBBVolume& volumeA, const Transform& worldTransformA,
+		static bool BoxOBBIntersection(const Vector3& boxSize, const Vector3& boxPos,
+										const OBBVolume& volumeOBB, const Transform& TransformOBB, CollisionInfo& collisionInfo);
+		static bool AABBOBBIntersection(const AABBVolume& volumeA, const Transform& worldTransformA,
+										const OBBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
+		static bool OBBIntersection(const OBBVolume& volumeA, const Transform& worldTransformA,
 										const OBBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
 
 		static Vector3 Unproject(const Vector3& screenPos, const Camera& cam);
