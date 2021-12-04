@@ -745,7 +745,7 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 		{
 			Vector3 normalOBB = rotationOBB.GetColumn(i);
 			Vector3 normal = Vector3::Cross(normalBox, normalOBB).Normalised();
-			if (normal.Length() < bias)
+			if (normal.Length() == 0)
 			{
 				continue;
 			}
@@ -778,6 +778,11 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 		{
 			//cpointOBB[i] = -1 * dSign * Vector3::Dot(rotationBox.GetColumn(indexBox), rotationOBB.GetColumn(i)) * sizeOBB[i];
 			cpointOBB[j] = -dSign * ValueSign(matC.GetColumn(indexBox)[j]) * sizeOBB[j];
+			if (Vector3::Dot(collisionNormal, rotationOBB.GetColumn(j)) == 0)
+			{
+				float minOverlap = min(overlapOBB[j], sizeOBB[j] * 2);
+				cpointOBB[j] += minOverlap / 2;
+			}
 		}
 		cpointBox = (rotationOBB * cpointOBB) + posOBB + collisionNormalSigned * minPenetration - boxPos;
 	}
@@ -787,6 +792,11 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 		{
 			//cpointBox[i] = dSign * Vector3::Dot(rotationBox.GetColumn(i), rotationOBB.GetColumn(indexOBB)) * boxSize[i];
 			cpointBox[i] = dSign * ValueSign(matC.GetColumn(i)[indexOBB]) * boxSize[i];
+			if (Vector3::Dot(collisionNormal, rotationBox.GetColumn(i)) < bias)
+			{
+				float minOverlap = min(overlapBox[i], boxSize[i] * 2);
+				cpointBox[i] += minOverlap / 2;
+			}
 		}
 		cpointOBB = invRotationOBB * (cpointBox + boxPos - posOBB - collisionNormalSigned * minPenetration);
 	}
@@ -828,17 +838,66 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 		break;
 		case 1:
 		{
-
+			cpointBox[0] = dSign * ValueSign(Mat3Val(matC, 2, indexOBB)) * boxSize[0];
+			cpointBox[2] = -dSign * ValueSign(Mat3Val(matC, 0, indexOBB)) * boxSize[2];
+			bottom = 1 - pow(Mat3Val(matC, 1, indexOBB), 2.0f);
+			topF = Vector3::Dot(rotationBox.GetColumn(1), centerDistance) + Mat3Val(matC, 1, indexOBB) * (-Vector3::Dot(rotationOBB.GetColumn(indexOBB), centerDistance) + Mat3Val(matC, 0, indexOBB) * cpointBox[0] + Mat3Val(matC, 2, indexOBB) * cpointBox[2]);
+			switch (indexOBB)
+			{
+			case 0:
+				cpointOBB[1] = -dSign * ValueSign(Mat3Val(matC, 1, 2)) * sizeOBB[1];
+				cpointOBB[2] = dSign * ValueSign(Mat3Val(matC, 1, 1)) * sizeOBB[2];
+				topB = Mat3Val(matC, 1, 1) * cpointOBB[1] + Mat3Val(matC, 1, 2) * cpointOBB[2];
+				break;
+			case 1:
+				cpointOBB[0] = dSign * ValueSign(Mat3Val(matC, 1, 2)) * sizeOBB[0];
+				cpointOBB[2] = -dSign * ValueSign(Mat3Val(matC, 1, 0)) * sizeOBB[2];
+				topB = Mat3Val(matC, 1, 0) * cpointOBB[0] + Mat3Val(matC, 1, 2) * cpointOBB[2];
+				break;
+			case 2:
+				cpointOBB[0] = -dSign * ValueSign(Mat3Val(matC, 1, 1)) * sizeOBB[0];
+				cpointOBB[1] = dSign * ValueSign(Mat3Val(matC, 1, 0)) * sizeOBB[1];
+				topB = Mat3Val(matC, 1, 0) * cpointOBB[0] + Mat3Val(matC, 1, 1) * cpointOBB[1];
+				break;
+			default:
+				break;
+			}
+			cpointBox[1] = (topF + topB) / bottom;
 		}
 		break;
 		case 2:
 		{
-
+			cpointBox[0] = -dSign * ValueSign(Mat3Val(matC, 1, indexOBB)) * boxSize[0];
+			cpointBox[1] = dSign * ValueSign(Mat3Val(matC, 0, indexOBB)) * boxSize[1];
+			bottom = 1 - pow(Mat3Val(matC, 2, indexOBB), 2.0f);
+			topF = Vector3::Dot(rotationBox.GetColumn(2), centerDistance) + Mat3Val(matC, 2, indexOBB) * (-Vector3::Dot(rotationOBB.GetColumn(indexOBB), centerDistance) + Mat3Val(matC, 0, indexOBB) * cpointBox[0] + Mat3Val(matC, 1, indexOBB) * cpointBox[1]);
+			switch (indexOBB)
+			{
+			case 0:
+				cpointOBB[1] = -dSign * ValueSign(Mat3Val(matC, 2, 2)) * sizeOBB[1];
+				cpointOBB[2] = dSign * ValueSign(Mat3Val(matC, 2, 1)) * sizeOBB[2];
+				topB = Mat3Val(matC, 2, 1) * cpointOBB[1] + Mat3Val(matC, 2, 2) * cpointOBB[2];
+				break;
+			case 1:
+				cpointOBB[0] = dSign * ValueSign(Mat3Val(matC, 2, 2)) * sizeOBB[0];
+				cpointOBB[2] = -dSign * ValueSign(Mat3Val(matC, 2, 0)) * sizeOBB[2];
+				topB = Mat3Val(matC, 2, 0) * cpointOBB[0] + Mat3Val(matC, 2, 2) * cpointOBB[2];
+				break;
+			case 2:
+				cpointOBB[0] = -dSign * ValueSign(Mat3Val(matC, 2, 1)) * sizeOBB[0];
+				cpointOBB[1] = dSign * ValueSign(Mat3Val(matC, 2, 0)) * sizeOBB[1];
+				topB = Mat3Val(matC, 2, 0) * cpointOBB[0] + Mat3Val(matC, 2, 1) * cpointOBB[1];
+				break;
+			default:
+				break;
+			}
+			cpointBox[2] = (topF + topB) / bottom;
 		}
 		break;
 		default:
 			break;
 		}
+		cpointOBB = invRotationOBB * (cpointBox + boxPos - posOBB - collisionNormalSigned * minPenetration);
 	}
 
 
@@ -847,7 +906,8 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 	printf("collisionNormal : (%f,%f,%f)\n", collisionNormal.x, collisionNormal.y, collisionNormal.z);
 	printf("minPenetration : %f\n", minPenetration);
 
-	collisionInfo.AddContactPoint(cpointBox, cpointOBB, collisionNormal, minPenetration);
+	//collisionInfo.AddContactPoint(cpointBox, cpointOBB, collisionNormal, minPenetration);
+	collisionInfo.AddContactPoint(cpointBox, cpointOBB, collisionNormalSigned, minPenetration);
 
 	return true;
 }
