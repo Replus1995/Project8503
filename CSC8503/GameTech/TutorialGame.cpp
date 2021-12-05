@@ -6,6 +6,7 @@
 #include "../../Common/TextureLoader.h"
 #include "../CSC8503Common/PositionConstraint.h"
 
+
 using namespace NCL;
 using namespace CSC8503;
 
@@ -103,6 +104,8 @@ void TutorialGame::UpdateGame(float dt) {
 
 		//Debug::DrawAxisLines(lockedObject->GetTransform().GetMatrix(), 2.0f);
 	}
+
+	world->UpdateGameObjects(dt);
 
 	world->UpdateWorld(dt);
 	renderer->Update(dt);
@@ -245,7 +248,6 @@ void TutorialGame::InitWorld() {
 	world->ClearAndErase();
 	physics->Clear();
 
-	InitMixedGridWorld(5, 5, 3.5f, 3.5f);
 	InitGameExamples();
 	InitDefaultFloor();
 }
@@ -438,15 +440,22 @@ void TutorialGame::InitDefaultFloor() {
 }
 
 void TutorialGame::InitGameExamples() {
-	AddPlayerToWorld(Vector3(0, 5, 0), "DefaultPlayer");
-	AddEnemyToWorld(Vector3(5, 5, 0), "DefaultEnemy");
-	AddBonusToWorld(Vector3(10, 5, 0), "Bonus");
+	
+	//InitMixedGridWorld(5, 5, 3.5f, 3.5f);
+
+	//AddPlayerToWorld(Vector3(0, 5, 0), "DefaultPlayer");
+	//AddEnemyToWorld(Vector3(5, 5, 0), "DefaultEnemy");
+	//AddBonusToWorld(Vector3(10, 5, 0), "Bonus");
 	AddCapsuleToWorld(Vector3(15, 5, 0), 2, 1, 10.0f, "TestCapsule");
 
-	BridgeConstraintTest();
+	//BridgeConstraintTest();
 
-	AddCubeToWorld_OBB(Vector3(0, 20, 0), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB");
-	AddSphereToWorld(Vector3(5, 20, 0), 1.0f, 10.0f, "TestCollision_Sphere");
+	AddCubeToWorld_OBB(Vector3(-5, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB_1");
+	AddCubeToWorld_OBB(Vector3(0, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB");
+	AddSphereToWorld(Vector3(5, 20, -10), 1.0f, 10.0f, "TestCollision_Sphere");
+	AddCubeToWorld(Vector3(0, 20, -5), Vector3(1, 1, 1), 10.0f, "TestCollision_AABB");
+
+	AddStateObjectToWorld(Vector3(50, 10, 0), "TestStateObject");
 	
 }
 
@@ -524,6 +533,27 @@ GameObject* TutorialGame::AddBonusToWorld(const Vector3& position, const std::st
 	world->AddGameObject(apple);
 
 	return apple;
+}
+
+StateGameObject* TutorialGame::AddStateObjectToWorld(const Vector3& position, const std::string& name)
+{
+	StateGameObject* object = new StateGameObject(name);
+
+	SphereVolume* volume = new SphereVolume(1.0f);
+	object->SetBoundingVolume((CollisionVolume*)volume);
+	object->GetTransform()
+		.SetScale(Vector3(1,1,1))
+		.SetPosition(position);
+
+	object->SetRenderObject(new RenderObject(&object->GetTransform(), sphereMesh, nullptr, basicShader));
+	object->SetPhysicsObject(new PhysicsObject(&object->GetTransform(), object->GetBoundingVolume()));
+
+	object->GetPhysicsObject()->SetInverseMass(1.0f);
+	object->GetPhysicsObject()->InitSphereInertia();
+
+	world->AddGameObject(object);
+
+	return object;
 }
 
 /*

@@ -102,6 +102,14 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 	return false;
 }
 
+void GameWorld::UpdateGameObjects(float dt)
+{
+	for (GameObject* object : gameObjects)
+	{
+		object->Update(dt);
+	}
+}
+
 
 /*
 Constraint Tutorial Stuff

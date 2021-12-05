@@ -14,8 +14,8 @@ namespace NCL {
 
 		class GameObject	{
 		public:
-			GameObject(string name = "");
-			~GameObject();
+			GameObject(const string& name = "");
+			virtual ~GameObject();
 
 			void SetBoundingVolume(CollisionVolume* vol) {
 				boundingVolume = vol;
@@ -69,9 +69,11 @@ namespace NCL {
 				worldID = newID;
 			}
 
-			int		GetWorldID() const {
+			int GetWorldID() const {
 				return worldID;
 			}
+
+			virtual void Update(float dt) {};
 
 		protected:
 			Transform			transform;

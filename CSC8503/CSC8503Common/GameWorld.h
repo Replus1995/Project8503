@@ -41,6 +41,8 @@ namespace NCL {
 
 			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject = false) const;
 
+			void UpdateGameObjects(float dt);
+
 			virtual void UpdateWorld(float dt);
 
 			void OperateOnContents(GameObjectFunc f);

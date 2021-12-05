@@ -1,26 +1,41 @@
 #pragma once
+#include <functional>
 
 namespace NCL {
 	namespace CSC8503 {
 
 		class State;
-
+		typedef std::function<bool()> StateTransitionFunction;
 		class StateTransition
 		{
 		public:
-			virtual bool CanTransition() const = 0;
+			StateTransition(State* source, State* dest)
+				: sourceState(source)
+				, destinationState(dest)
+				, function(nullptr)
+			{};
 
-			State* GetDestinationState()  const {
-				return destinationState;
-			}
+			StateTransition(State* source, State* dest, StateTransitionFunction func)
+				: sourceState(source)
+				, destinationState(dest)
+				, function(func)
+			{};
+			virtual ~StateTransition() {};
 
-			State* GetSourceState() const {
-				return sourceState;
-			}
+			virtual bool CanTransition() const 
+			{
+				if (function)
+					return function();
+				return false;
+			};
+
+			State* GetDestinationState() const { return destinationState; };
+			State* GetSourceState() const { return sourceState; };
 
 		protected:
 			State * sourceState;
 			State * destinationState;
+			StateTransitionFunction function;
 		};
 
 		template <class T, class U>
@@ -28,13 +43,12 @@ namespace NCL {
 		{
 		public:
 			typedef bool(*GenericTransitionFunc)(T, U);
-			GenericTransition(GenericTransitionFunc f, T testData, U otherData, State* srcState, State* destState) :
-				dataA(testData), dataB(otherData)
-			{
-				func				= f;
-				sourceState			= srcState;		//
-				destinationState	= destState;
-			}
+			GenericTransition(GenericTransitionFunc f, T testData, U otherData, State* srcState, State* destState)
+				: StateTransition(srcState, destState)
+				, func(f)
+				, dataA(testData)
+				, dataB(otherData)
+			{};
 			~GenericTransition() {}
 
 			virtual bool CanTransition() const override{

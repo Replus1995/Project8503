@@ -8,6 +8,8 @@
 
 #include "TutorialGame.h"
 
+#include "DebugAI.h"
+
 using namespace NCL;
 using namespace CSC8503;
 
@@ -23,13 +25,28 @@ This time, we've added some extra functionality to the window class - we can
 hide or show the 
 
 */
+
+//#define SimpleTestAI
+
 int main() {
+
+	srand(time(0));
+
+#ifdef SimpleTestAI
+	{
+		//DebugAI::TestStateMachine();
+		DebugAI::TestBehaviourTree();
+		system("Pause");
+		return 0;
+	}
+#endif //  SimpleTestAI
+
 	Window*w = Window::CreateGameWindow("CSC8503 Game technology!", 1280, 720);
 
 	if (!w->HasInitialised()) {
 		return -1;
 	}	
-	srand(time(0));
+	
 	w->ShowOSPointer(false);
 	w->LockMouseToWindow(true);
 
@@ -53,8 +70,9 @@ int main() {
 		}
 
 		w->SetTitle("Gametech frame time:" + std::to_string(1000.0f * dt));
-
 		g->UpdateGame(dt);
+
+		DebugAI::TestAndDisplayPathFinding(); //Test navigation
 	}
 	Window::DestroyGameWindow();
 }
