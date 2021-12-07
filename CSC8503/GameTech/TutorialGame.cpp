@@ -147,6 +147,13 @@ void TutorialGame::UpdateKeys() {
 		world->ShuffleObjects(false);
 	}
 
+	if (Window::GetKeyboard()->KeyDown(KeyboardKeys::F3)) {
+		renderer->SwitchToColour(Vector4(0, 0, 0, 1));
+	}
+	if (Window::GetKeyboard()->KeyDown(KeyboardKeys::F4)) {
+		renderer->SwitchToScene();
+	}
+
 	if (lockedObject) {
 		LockedObjectMovement();
 	}
@@ -446,16 +453,17 @@ void TutorialGame::InitGameExamples() {
 	//AddPlayerToWorld(Vector3(0, 5, 0), "DefaultPlayer");
 	//AddEnemyToWorld(Vector3(5, 5, 0), "DefaultEnemy");
 	//AddBonusToWorld(Vector3(10, 5, 0), "Bonus");
-	AddCapsuleToWorld(Vector3(15, 5, 0), 2, 1, 10.0f, "TestCapsule");
+	//AddCapsuleToWorld(Vector3(15, 5, 0), 2, 1, 10.0f, "TestCapsule");
+	//AddSphereToWorld(Vector3(20, 5, 0), 1, 10.0f, "TestSphere");
 
 	//BridgeConstraintTest();
 
 	AddCubeToWorld_OBB(Vector3(-5, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB_1");
 	AddCubeToWorld_OBB(Vector3(0, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB");
-	AddSphereToWorld(Vector3(5, 20, -10), 1.0f, 10.0f, "TestCollision_Sphere");
-	AddCubeToWorld(Vector3(0, 20, -5), Vector3(1, 1, 1), 10.0f, "TestCollision_AABB");
+	//AddSphereToWorld(Vector3(5, 20, -10), 1.0f, 10.0f, "TestCollision_Sphere");
+	//AddCubeToWorld(Vector3(0, 20, -5), Vector3(1, 1, 1), 10.0f, "TestCollision_AABB");
 
-	AddStateObjectToWorld(Vector3(50, 10, 0), "TestStateObject");
+	//AddStateObjectToWorld(Vector3(50, 10, 0), "TestStateObject");
 	
 }
 

@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="DebugAI.h" />
     <ClInclude Include="GameTechRenderer.h" />
+    <ClInclude Include="TestPushdown.h" />
     <ClInclude Include="TutorialGame.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

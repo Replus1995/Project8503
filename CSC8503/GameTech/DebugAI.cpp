@@ -12,6 +12,8 @@
 #include "../CSC8503Common/BehaviourSelector.h"
 #include "../CSC8503Common/BehaviourSequence.h"
 
+#include "TestPushdown.h"
+
 using namespace NCL;
 using namespace CSC8503;
 
@@ -56,6 +58,7 @@ void DebugAI::TestStateMachine()
 		testMachine->Update(1.0f);
 	}
 
+	delete testMachine;
 }
 
 void DebugAI::TestPathFinding(std::vector<NCL::Maths::Vector3>& outNodes)
@@ -218,4 +221,18 @@ void DebugAI::TestBehaviourTree()
 	}
 	std::cout << "All done!\n";
 
+	delete rootSequence;
+}
+
+void DebugAI::TestPushdownAutomata(NCL::Window* w)
+{
+	PushdownMachine machine(new IntroScreen());
+	while (w->UpdateWindow())
+	{
+		float dt = w->GetTimer()->GetTimeDeltaSeconds();
+		if (!machine.Update(dt))
+		{
+			return;
+		}
+	}
 }

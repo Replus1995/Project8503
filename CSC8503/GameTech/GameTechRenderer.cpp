@@ -57,6 +57,17 @@ GameTechRenderer::~GameTechRenderer()	{
 	glDeleteFramebuffers(1, &shadowFBO);
 }
 
+void GameTechRenderer::SwitchToColour(Vector4 inColour)
+{
+	renderScene = false;
+	screenColour = inColour;
+}
+
+void GameTechRenderer::SwitchToScene()
+{
+	renderScene = true;
+}
+
 void GameTechRenderer::LoadSkybox() {
 	string filenames[6] = {
 		"/Cubemap/skyrender0004.png",
@@ -98,14 +109,22 @@ void GameTechRenderer::LoadSkybox() {
 }
 
 void GameTechRenderer::RenderFrame() {
-	glEnable(GL_CULL_FACE);
-	glClearColor(1, 1, 1, 1);
-	BuildObjectList();
-	SortObjectList();
-	RenderShadowMap();
-	RenderSkybox();
-	RenderCamera();
-	glDisable(GL_CULL_FACE); //Todo - text indices are going the wrong way...
+	
+	if (renderScene)
+	{
+		glEnable(GL_CULL_FACE);
+		glClearColor(1, 1, 1, 1);
+		BuildObjectList();
+		SortObjectList();
+		RenderShadowMap();
+		RenderSkybox();
+		RenderCamera();
+		glDisable(GL_CULL_FACE); //Todo - text indices are going the wrong way...
+	}
+	else
+	{
+		glClearColor(screenColour.x, screenColour.y, screenColour.z, 1);
+	}
 }
 
 void GameTechRenderer::BuildObjectList() {

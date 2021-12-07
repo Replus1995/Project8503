@@ -58,10 +58,6 @@ namespace NCL {
 			}
 		};
 
-		static bool SphereCapsuleIntersection(
-			const CapsuleVolume& volumeA, const Transform& worldTransformA,
-			const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
-
 		//TODO ADD THIS PROPERLY
 		static bool RayBoxIntersection(const Ray&r, const Vector3& boxPos, const Vector3& boxSize, RayCollision& collision);
 		static int RayCylinderIntersection(const Ray& r, const float halfHeight, const float radius, RayCollision& collision);
@@ -85,7 +81,7 @@ namespace NCL {
 		static float ValueSign(float value);
 		static float Mat3Val(const Matrix3& matrix, int i, int j);
 
-		static Vector3 FindContactPointOnBox(const Vector3& boxSize, const Vector3& localNormal);
+		static Vector3 FindClosestNormalOnBox(const Vector3& localNormal);
 
 
 		static bool ObjectIntersection(GameObject* a, GameObject* b, CollisionInfo& collisionInfo);
@@ -109,6 +105,11 @@ namespace NCL {
 										const OBBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
 		static bool OBBIntersection(const OBBVolume& volumeA, const Transform& worldTransformA,
 										const OBBVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
+
+		static int CylinderSphereIntersection(const float cylinderHalfHeight, const float cylinderRadius,
+										float sphereRadius, const Vector3& spherePos, CollisionInfo& collisionInfo);
+		static bool CapsuleSphereIntersection(const CapsuleVolume& volumeA, const Transform& worldTransformA,
+										const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo);
 
 		static Vector3 Unproject(const Vector3& screenPos, const Camera& cam);
 

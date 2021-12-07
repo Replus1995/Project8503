@@ -7,6 +7,7 @@
 #include "../CSC8503Common/NavigationGrid.h"
 
 #include "TutorialGame.h"
+#include "GameTechRenderer.h"
 
 #include "DebugAI.h"
 
@@ -47,6 +48,8 @@ int main() {
 		return -1;
 	}	
 	
+	//DebugAI::TestPushdownAutomata(w);
+
 	w->ShowOSPointer(false);
 	w->LockMouseToWindow(true);
 

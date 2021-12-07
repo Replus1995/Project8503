@@ -477,17 +477,17 @@ bool CollisionDetection::ObjectIntersection(GameObject* a, GameObject* b, Collis
 		collisionInfo.b = a;
 		return AABBOBBIntersection((AABBVolume&)*volB, transformB, (OBBVolume&)*volA, transformA, collisionInfo);
 	}
-
-
-
 	if (volA->type == VolumeType::Capsule && volB->type == VolumeType::Sphere) {
-		return SphereCapsuleIntersection((CapsuleVolume&)*volA, transformA, (SphereVolume&)*volB, transformB, collisionInfo);
+		return CapsuleSphereIntersection((CapsuleVolume&)*volA, transformA, (SphereVolume&)*volB, transformB, collisionInfo);
 	}
 	if (volA->type == VolumeType::Sphere && volB->type == VolumeType::Capsule) {
 		collisionInfo.a = b;
 		collisionInfo.b = a;
-		return SphereCapsuleIntersection((CapsuleVolume&)*volB, transformB, (SphereVolume&)*volA, transformA, collisionInfo);
+		return CapsuleSphereIntersection((CapsuleVolume&)*volB, transformB, (SphereVolume&)*volA, transformA, collisionInfo);
 	}
+
+	
+	
 
 	return false;
 }
@@ -535,15 +535,21 @@ float CollisionDetection::Mat3Val(const Matrix3& matrix, int i, int j)
 	return matrix.array[3 * i + j];
 }
 
-Vector3 CollisionDetection::FindContactPointOnBox(const Vector3& boxSize, const Vector3& localNormal)
+Vector3 CollisionDetection::FindClosestNormalOnBox(const Vector3& localNormal)
 {
-	float tX = abs(boxSize.x / localNormal.x);
-	float tY = abs(boxSize.y / localNormal.y);
-	float tZ = abs(boxSize.z / localNormal.z);
-
-	float tMin = min(min(tX, tY), tZ);
-
-	return localNormal * tMin;
+	float minDist = 1.0f;
+	Vector3 minNormal;
+	for (int i = 0; i < 3; i++)
+	{
+		float dist = abs(localNormal[i]);
+		if (dist < minDist && dist > 0)
+		{
+			minDist = dist;
+			minNormal = Vector3(0, 0, 0);
+			minNormal[i] = localNormal[i] / dist;
+		}
+	}
+	return minNormal;
 }
 
 //AABB/AABB Collisions
@@ -664,8 +670,8 @@ bool CollisionDetection::OBBSphereIntersection(const OBBVolume& volumeA, const T
 
 bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector3& boxPos, const OBBVolume& volumeOBB, const Transform& TransformOBB, CollisionInfo& collisionInfo)
 {
-	/*static const Vector3 cornerScales[8] = { Vector3(-1, -1,-1), Vector3(1, -1, -1), Vector3(1, -1, 1), Vector3(-1, -1, 1),
-											Vector3(-1, 1, -1), Vector3(1, -1, -1), Vector3(1, 1, 1), Vector3(-1, 1, 1) };*/
+	static const Vector3 cornerScales[8] = { Vector3(-1, -1,-1), Vector3(1, -1, -1), Vector3(1, -1, 1), Vector3(-1, -1, 1),
+											Vector3(-1, 1, -1), Vector3(1, 1, -1), Vector3(1, 1, 1), Vector3(-1, 1, 1) };
 
 	static const float bias = 0.0001f;
 
@@ -690,8 +696,8 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 	float minPenetration = FLT_MAX;
 
 	int indexBox = -1, indexOBB = -1;
-	float overlapBox[3] = {0};
-	float overlapOBB[3] = {0};
+	float overlapBox[3] = { 0 };
+	float overlapOBB[3] = { 0 };
 
 	std::vector<Vector3> TestedNormals;
 
@@ -768,137 +774,88 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 	Vector3 cpointBox, cpointOBB;
 	float cnormalDist = Vector3::Dot(centerDistance, collisionNormal);
 	float dSign = cnormalDist / abs(cnormalDist);
-	Vector3 collisionNormalSigned = collisionNormal * dSign;
+	collisionNormal *= dSign;
+	//Vector3 collisionNormalSigned = collisionNormal * dSign;
 
-	Matrix3 matC = rotationBox.Transposed() * rotationOBB;
+	if (indexBox >= 0 && indexOBB < 0)
+	{
+		Vector3 localNormal;
+		localNormal[indexBox] = 1;
+		float planeD = -abs(Vector3::Dot(localNormal, boxSize));
+		Vector3 sum;
+		float num = 0.0f;
+		for (int i = 0; i < 8; i++)
+		{
+			Vector3 VertexOBB = rotationOBB * (cornerScales[i] * sizeOBB) + centerDistance;
+			float side = Vector3::Dot(localNormal, VertexOBB) + planeD;
+			if (side < 0)
+			{
+				num += 1.0f;
+				sum += Maths::Clamp(VertexOBB, -boxSize, boxSize);
+			}
+		}
+		if (num > 0.0f)
+		{
+			Vector3 cPoint = sum / num;
+			cpointBox = cPoint + localNormal * minPenetration;
+			cpointOBB = invRotationOBB * (cPoint - centerDistance);
+		}
+	}
+	else if (indexBox < 0 && indexOBB >= 0)
+	{
+		Vector3 localNormal;
+		localNormal[indexOBB] = 1;
+		float planeD = -abs(Vector3::Dot(localNormal, sizeOBB));
+		Vector3 sum;
+		float num = 0.0f;
+		for (int i = 0; i < 8; i++)
+		{
+			Vector3 VertexBox = invRotationOBB * (cornerScales[i] * boxSize - centerDistance);
+			float side = Vector3::Dot(localNormal, VertexBox) + planeD;
+			if (side < 0)
+			{
+				num += 1.0f;
+				sum += Maths::Clamp(VertexBox, -sizeOBB, sizeOBB);
+			}
+		}
+		if (num > 0.0f)
+		{
+			Vector3 cPoint = sum / num;
+			cpointOBB = cPoint + localNormal * minPenetration;
+			cpointBox = rotationOBB * cPoint + centerDistance;
+		}
+	}
+	else
+	{
+		//Calculate the contact point on 2 edges
+		float dNormal = 0.0f;
+		for (int i = 0; i < 3; i++)
+		{
+			dNormal += boxSize[i] * abs(Vector3::Dot(rotationBox.GetColumn(i), collisionNormal));
+		}
+		Vector3 nBox = FindClosestNormalOnBox(collisionNormal);
+		Vector3 localCN_OBB = invRotationOBB * (-collisionNormal);
+		Vector3 nOBB_local = FindClosestNormalOnBox(localCN_OBB);
+		Vector3 nOBB = rotationOBB * nOBB_local;
+		float dBox = abs(Vector3::Dot(boxSize, nBox));
+		float dOBB = abs(Vector3::Dot((rotationOBB * (nOBB_local * sizeOBB) + centerDistance + collisionNormal * minPenetration), nOBB));
+		/*float elementA[9];
+		for (int i = 0; i < 3; i++)
+		{
+			elementA[i * 3] = collisionNormal[i];
+			elementA[i * 3 + 1] = nBox[i];
+			elementA[i * 3 + 2] = nOBB[i];
+		}*/
+		Matrix3 A;
+		A.SetRow(0, collisionNormal);
+		A.SetRow(1, nBox);
+		A.SetRow(2, nOBB);
+		Vector3 D(dNormal, dBox, dOBB);
+		Matrix4 A4(A);
+		cpointBox = A4.Inverse() * D;
+		cpointOBB = invRotationOBB * (cpointBox - collisionNormal * minPenetration - centerDistance);
+	}
 
-	//if (indexBox >= 0 && indexOBB < 0)
-	//{
-	//	for (int j = 0; j < 3; j++)
-	//	{
-	//		//cpointOBB[i] = -1 * dSign * Vector3::Dot(rotationBox.GetColumn(indexBox), rotationOBB.GetColumn(i)) * sizeOBB[i];
-	//		cpointOBB[j] = -dSign * ValueSign(matC.GetColumn(indexBox)[j]) * sizeOBB[j];
-	//		if (Vector3::Dot(collisionNormal, rotationOBB.GetColumn(j)) == 0)
-	//		{
-	//			float minOverlap = min(overlapOBB[j], sizeOBB[j] * 2);
-	//			cpointOBB[j] += minOverlap / 2;
-	//		}
-	//	}
-	//	cpointBox = (rotationOBB * cpointOBB) + posOBB + collisionNormalSigned * minPenetration - boxPos;
-	//}
-	//else if (indexBox < 0 && indexOBB >= 0)
-	//{
-	//	for (int i = 0; i < 3; i++)
-	//	{
-	//		//cpointBox[i] = dSign * Vector3::Dot(rotationBox.GetColumn(i), rotationOBB.GetColumn(indexOBB)) * boxSize[i];
-	//		cpointBox[i] = dSign * ValueSign(matC.GetColumn(i)[indexOBB]) * boxSize[i];
-	//		if (Vector3::Dot(collisionNormal, rotationBox.GetColumn(i)) < bias)
-	//		{
-	//			float minOverlap = min(overlapBox[i], boxSize[i] * 2);
-	//			cpointBox[i] += minOverlap / 2;
-	//		}
-	//	}
-	//	cpointOBB = invRotationOBB * (cpointBox + boxPos - posOBB - collisionNormalSigned * minPenetration);
-	//}
-	//else
-	//{
-	//	float bottom = 0.0f;
-	//	float topF = 0.0f;
-	//	float topB = 0.0f;
-	//	switch (indexBox)
-	//	{
-	//	case 0:
-	//	{
-	//		cpointBox[1] = -dSign * ValueSign(Mat3Val(matC,2,indexOBB)) * boxSize[1];
-	//		cpointBox[2] = dSign * ValueSign(Mat3Val(matC,1,indexOBB)) * boxSize[2];
-	//		bottom = 1 - pow(Mat3Val(matC,0,indexOBB), 2.0f);
-	//		topF = Vector3::Dot(rotationBox.GetColumn(0), centerDistance) + Mat3Val(matC,0,indexOBB) * (-Vector3::Dot(rotationOBB.GetColumn(indexOBB), centerDistance) + Mat3Val(matC,1,indexOBB) * cpointBox[1] + Mat3Val(matC,2,indexOBB) * cpointBox[2]);
-	//		switch (indexOBB)
-	//		{
-	//		case 0:
-	//			cpointOBB[1] = -dSign * ValueSign(Mat3Val(matC,0,2)) * sizeOBB[1];
-	//			cpointOBB[2] = dSign * ValueSign(Mat3Val(matC,0,1)) * sizeOBB[2];
-	//			topB = Mat3Val(matC,0,1) * cpointOBB[1] + Mat3Val(matC,0,2) * cpointOBB[2];
-	//			break;
-	//		case 1:
-	//			cpointOBB[0] = dSign * ValueSign(Mat3Val(matC,0,2)) * sizeOBB[0];
-	//			cpointOBB[2] = -dSign * ValueSign(Mat3Val(matC,0,0)) * sizeOBB[2];
-	//			topB = Mat3Val(matC,0,0) * cpointOBB[0] + Mat3Val(matC,0,2) * cpointOBB[2];
-	//			break;
-	//		case 2:
-	//			cpointOBB[0] = -dSign * ValueSign(Mat3Val(matC,0,1)) * sizeOBB[0];
-	//			cpointOBB[1] = dSign * ValueSign(Mat3Val(matC,0,0)) * sizeOBB[1];
-	//			topB = Mat3Val(matC,0,0) * cpointOBB[0] + Mat3Val(matC,0,1) * cpointOBB[1];
-	//			break;
-	//		default:
-	//			break;
-	//		}
-	//		cpointBox[0] = (topF + topB) / bottom;
-	//	}
-	//	break;
-	//	case 1:
-	//	{
-	//		cpointBox[0] = dSign * ValueSign(Mat3Val(matC, 2, indexOBB)) * boxSize[0];
-	//		cpointBox[2] = -dSign * ValueSign(Mat3Val(matC, 0, indexOBB)) * boxSize[2];
-	//		bottom = 1 - pow(Mat3Val(matC, 1, indexOBB), 2.0f);
-	//		topF = Vector3::Dot(rotationBox.GetColumn(1), centerDistance) + Mat3Val(matC, 1, indexOBB) * (-Vector3::Dot(rotationOBB.GetColumn(indexOBB), centerDistance) + Mat3Val(matC, 0, indexOBB) * cpointBox[0] + Mat3Val(matC, 2, indexOBB) * cpointBox[2]);
-	//		switch (indexOBB)
-	//		{
-	//		case 0:
-	//			cpointOBB[1] = -dSign * ValueSign(Mat3Val(matC, 1, 2)) * sizeOBB[1];
-	//			cpointOBB[2] = dSign * ValueSign(Mat3Val(matC, 1, 1)) * sizeOBB[2];
-	//			topB = Mat3Val(matC, 1, 1) * cpointOBB[1] + Mat3Val(matC, 1, 2) * cpointOBB[2];
-	//			break;
-	//		case 1:
-	//			cpointOBB[0] = dSign * ValueSign(Mat3Val(matC, 1, 2)) * sizeOBB[0];
-	//			cpointOBB[2] = -dSign * ValueSign(Mat3Val(matC, 1, 0)) * sizeOBB[2];
-	//			topB = Mat3Val(matC, 1, 0) * cpointOBB[0] + Mat3Val(matC, 1, 2) * cpointOBB[2];
-	//			break;
-	//		case 2:
-	//			cpointOBB[0] = -dSign * ValueSign(Mat3Val(matC, 1, 1)) * sizeOBB[0];
-	//			cpointOBB[1] = dSign * ValueSign(Mat3Val(matC, 1, 0)) * sizeOBB[1];
-	//			topB = Mat3Val(matC, 1, 0) * cpointOBB[0] + Mat3Val(matC, 1, 1) * cpointOBB[1];
-	//			break;
-	//		default:
-	//			break;
-	//		}
-	//		cpointBox[1] = (topF + topB) / bottom;
-	//	}
-	//	break;
-	//	case 2:
-	//	{
-	//		cpointBox[0] = -dSign * ValueSign(Mat3Val(matC, 1, indexOBB)) * boxSize[0];
-	//		cpointBox[1] = dSign * ValueSign(Mat3Val(matC, 0, indexOBB)) * boxSize[1];
-	//		bottom = 1 - pow(Mat3Val(matC, 2, indexOBB), 2.0f);
-	//		topF = Vector3::Dot(rotationBox.GetColumn(2), centerDistance) + Mat3Val(matC, 2, indexOBB) * (-Vector3::Dot(rotationOBB.GetColumn(indexOBB), centerDistance) + Mat3Val(matC, 0, indexOBB) * cpointBox[0] + Mat3Val(matC, 1, indexOBB) * cpointBox[1]);
-	//		switch (indexOBB)
-	//		{
-	//		case 0:
-	//			cpointOBB[1] = -dSign * ValueSign(Mat3Val(matC, 2, 2)) * sizeOBB[1];
-	//			cpointOBB[2] = dSign * ValueSign(Mat3Val(matC, 2, 1)) * sizeOBB[2];
-	//			topB = Mat3Val(matC, 2, 1) * cpointOBB[1] + Mat3Val(matC, 2, 2) * cpointOBB[2];
-	//			break;
-	//		case 1:
-	//			cpointOBB[0] = dSign * ValueSign(Mat3Val(matC, 2, 2)) * sizeOBB[0];
-	//			cpointOBB[2] = -dSign * ValueSign(Mat3Val(matC, 2, 0)) * sizeOBB[2];
-	//			topB = Mat3Val(matC, 2, 0) * cpointOBB[0] + Mat3Val(matC, 2, 2) * cpointOBB[2];
-	//			break;
-	//		case 2:
-	//			cpointOBB[0] = -dSign * ValueSign(Mat3Val(matC, 2, 1)) * sizeOBB[0];
-	//			cpointOBB[1] = dSign * ValueSign(Mat3Val(matC, 2, 0)) * sizeOBB[1];
-	//			topB = Mat3Val(matC, 2, 0) * cpointOBB[0] + Mat3Val(matC, 2, 1) * cpointOBB[1];
-	//			break;
-	//		default:
-	//			break;
-	//		}
-	//		cpointBox[2] = (topF + topB) / bottom;
-	//	}
-	//	break;
-	//	default:
-	//		break;
-	//	}
-	//	cpointOBB = invRotationOBB * (cpointBox + boxPos - posOBB - collisionNormalSigned * minPenetration);
-	//}
 
 
 	//printf("cpointBox : (%f,%f,%f)\n", cpointBox.x, cpointBox.y, cpointBox.z);
@@ -906,8 +863,8 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 	//printf("collisionNormal : (%f,%f,%f)\n", collisionNormal.x, collisionNormal.y, collisionNormal.z);
 	//printf("minPenetration : %f\n", minPenetration);
 
-	//collisionInfo.AddContactPoint(cpointBox, cpointOBB, collisionNormal, minPenetration);
-	collisionInfo.AddContactPoint(Vector3(), Vector3(), collisionNormalSigned, minPenetration);
+	collisionInfo.AddContactPoint(cpointBox, cpointOBB, collisionNormal, minPenetration);
+	//collisionInfo.AddContactPoint(Vector3(), Vector3(), collisionNormalSigned, minPenetration);
 
 	return true;
 }
@@ -946,8 +903,60 @@ bool CollisionDetection::OBBIntersection(
 	return collided;
 }
 
-bool CollisionDetection::SphereCapsuleIntersection(
-	const CapsuleVolume& volumeA, const Transform& worldTransformA,
-	const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo) {
-	return false;
+int CollisionDetection::CylinderSphereIntersection(const float cylinderHalfHeight, const float cylinderRadius, float sphereRadius, const Vector3& spherePos, CollisionInfo& collisionInfo)
+{
+	Vector2 planePos(spherePos.x, spherePos.z);
+	float penetration = cylinderRadius + sphereRadius - planePos.Length();
+	if (penetration > 0)
+	{
+		if (spherePos.y > -cylinderHalfHeight && spherePos.y < cylinderHalfHeight)
+		{
+			Vector2 normal2D = planePos.Normalised();
+			Vector3 normal3D(normal2D.x, 0, normal2D.y);
+			Vector3 cpointCylinder = Vector3(0, spherePos.y, 0) + normal3D * cylinderRadius;
+			Vector3 cpointSphere = Vector3(0, 0, 0) - normal3D * sphereRadius;
+
+			collisionInfo.AddContactPoint(cpointCylinder, cpointSphere, normal3D, penetration);
+			return 0;
+		}
+		else
+		{
+			return spherePos.y / abs(spherePos.y);
+		}
+	}
+	return -2;
+}
+
+bool CollisionDetection::CapsuleSphereIntersection(const CapsuleVolume& volumeA, const Transform& worldTransformA, const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo)
+{
+	Vector3 posA = worldTransformA.GetPosition();
+	Quaternion orientationA = worldTransformA.GetOrientation();
+	Matrix3 rotationA = Matrix3(orientationA);
+	Matrix3 invRotationA = Matrix3(orientationA.Conjugate());
+	Vector3 localPosB = invRotationA * (worldTransformB.GetPosition() - worldTransformA.GetPosition());
+	float cylinderHalfHeight = volumeA.GetHalfHeight() - volumeA.GetRadius();
+
+	int cylinderCollided = CylinderSphereIntersection(cylinderHalfHeight, volumeA.GetRadius(), volumeB.GetRadius(), localPosB, collisionInfo);
+	if (cylinderCollided < -1)
+	{
+		return false;
+	}
+	else if (cylinderCollided == 0)
+	{
+		collisionInfo.point.normal = rotationA * collisionInfo.point.normal;
+		collisionInfo.point.localB = rotationA * collisionInfo.point.localB;
+		return true;
+	}
+
+	Vector3 upA = rotationA.GetColumn(1);
+	SphereVolume cSphereVolume(volumeA.GetRadius());
+	Transform cSphereTranform = worldTransformA;
+
+	cSphereTranform.SetPosition(posA + upA * cylinderHalfHeight * cylinderCollided);
+	bool sphereCollided = SphereIntersection(cSphereVolume, cSphereTranform, volumeB, worldTransformB, collisionInfo);
+	if (sphereCollided)
+	{
+		collisionInfo.point.localA += upA * cylinderHalfHeight * cylinderCollided;
+	}
+	return sphereCollided;
 }

@@ -7,14 +7,14 @@ namespace NCL {
 			public State
 		{
 		public:
-			enum PushdownResult {
+			enum class PushdownResult {
 				Push, Pop, NoChange
 			};
-			PushdownState();
-			~PushdownState();
+			PushdownState() {};
+			virtual ~PushdownState() {};
 
-			PushdownResult PushdownUpdate(PushdownState** pushResult);
-
+			//PushdownResult PushdownUpdate(PushdownState** pushResult) { return PushdownResult::NoChange; };
+			virtual PushdownResult OnUpdate(float dt, PushdownState** pushFunc) = 0;
 			virtual void OnAwake() {} //By default do nothing
 			virtual void OnSleep() {} //By default do nothing
 		};

@@ -17,6 +17,9 @@ namespace NCL {
 			GameTechRenderer(GameWorld& world);
 			~GameTechRenderer();
 
+			void SwitchToColour(Vector4 inColour);
+			void SwitchToScene();
+
 		protected:
 			void RenderFrame()	override;
 
@@ -50,6 +53,9 @@ namespace NCL {
 			Vector4		lightColour;
 			float		lightRadius;
 			Vector3		lightPosition;
+
+			bool renderScene = true;
+			Vector4 screenColour = Vector4(1,1,1,1);
 		};
 	}
 }
