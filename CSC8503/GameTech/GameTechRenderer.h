@@ -6,6 +6,8 @@
 
 #include "../CSC8503Common/GameWorld.h"
 
+class GameUI;
+
 namespace NCL {
 	class Maths::Vector3;
 	class Maths::Vector4;
@@ -17,8 +19,7 @@ namespace NCL {
 			GameTechRenderer(GameWorld& world);
 			~GameTechRenderer();
 
-			void SwitchToColour(Vector4 inColour);
-			void SwitchToScene();
+			void SetUI(const GameUI* ui) { gameUI = ui; };
 
 		protected:
 			void RenderFrame()	override;
@@ -54,8 +55,7 @@ namespace NCL {
 			float		lightRadius;
 			Vector3		lightPosition;
 
-			bool renderScene = true;
-			Vector4 screenColour = Vector4(1,1,1,1);
+			const GameUI* gameUI = nullptr;
 		};
 	}
 }

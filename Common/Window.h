@@ -61,6 +61,8 @@ namespace NCL {
 		virtual void	SetConsolePosition(int x, int y) {};
 		virtual void	ShowConsole(bool state) {};
 
+		virtual bool IsFullScreen() { return false; };
+
 		static const Keyboard*	 GetKeyboard() { return keyboard; }
 		static const Mouse*		 GetMouse() { return mouse; }
 		static const GameTimer*	 GetTimer() { return timer; }

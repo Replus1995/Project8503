@@ -6,6 +6,9 @@
 #include "../../Common/TextureLoader.h"
 #include "../CSC8503Common/PositionConstraint.h"
 
+#include "BallGameMode.h"
+#include "GameUI.h"
+#include "TutorialMenu.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -17,7 +20,6 @@ TutorialGame::TutorialGame()	{
 
 	forceMagnitude	= 10.0f;
 	useGravity		= false;
-	inSelectionMode = false;
 
 	Debug::SetRenderer(renderer);
 
@@ -50,6 +52,8 @@ void TutorialGame::InitialiseAssets() {
 	basicShader = new OGLShader("GameTechVert.glsl", "GameTechFrag.glsl");
 
 	InitCamera();
+
+	gameMode.reset(new BallGameMode(this));
 	InitWorld();
 }
 
@@ -70,21 +74,10 @@ TutorialGame::~TutorialGame()	{
 }
 
 void TutorialGame::UpdateGame(float dt) {
-	if (!inSelectionMode) {
-		world->GetMainCamera()->UpdateCamera(dt);
-	}
+	
 
-	UpdateKeys();
+	UpdateKeyActions(dt);
 
-	if (useGravity) {
-		Debug::Print("(G)ravity on", Vector2(5, 95));
-	}
-	else {
-		Debug::Print("(G)ravity off", Vector2(5, 95));
-	}
-
-	SelectObject();
-	MoveSelectedObject();
 	physics->Update(dt);
 
 	if (lockedObject != nullptr) {
@@ -114,7 +107,16 @@ void TutorialGame::UpdateGame(float dt) {
 	renderer->Render();
 }
 
-void TutorialGame::UpdateKeys() {
+void TutorialGame::SetUI(GameUI* ui)
+{
+	renderer->SetUI(ui);
+	gameMenu.reset(new TutorialMenu(this));
+	ui->PushMenu(gameMenu);
+}
+
+void TutorialGame::UpdateKeyActions(float dt) {
+	world->GetMainCamera()->UpdateCamera(dt);
+
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::F1)) {
 		InitWorld(); //We can reset the simulation at any time with F1
 		selectionObject = nullptr;
@@ -125,10 +127,6 @@ void TutorialGame::UpdateKeys() {
 		InitCamera(); //F2 will reset the camera to a specific default place
 	}
 
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::G)) {
-		useGravity = !useGravity; //Toggle gravity!
-		physics->UseGravity(useGravity);
-	}
 	//Running certain physics updates in a consistent order might cause some
 	//bias in the calculations - the same objects might keep 'winning' the constraint
 	//allowing the other one to stretch too much etc. Shuffling the order so that it
@@ -147,19 +145,15 @@ void TutorialGame::UpdateKeys() {
 		world->ShuffleObjects(false);
 	}
 
-	if (Window::GetKeyboard()->KeyDown(KeyboardKeys::F3)) {
-		renderer->SwitchToColour(Vector4(0, 0, 0, 1));
-	}
-	if (Window::GetKeyboard()->KeyDown(KeyboardKeys::F4)) {
-		renderer->SwitchToScene();
-	}
-
 	if (lockedObject) {
 		LockedObjectMovement();
 	}
 	else {
 		DebugObjectMovement();
 	}
+
+	SelectObject();
+	MoveSelectedObject();
 }
 
 void TutorialGame::LockedObjectMovement() {
@@ -198,29 +192,20 @@ void TutorialGame::LockedObjectMovement() {
 		lockedObject->GetPhysicsObject()->AddForce(-fwdAxis * force);
 	}
 
-	if (Window::GetKeyboard()->KeyDown(KeyboardKeys::NEXT)) {
-		lockedObject->GetPhysicsObject()->AddForce(Vector3(0,-10,0));
+	if (Window::GetKeyboard()->KeyDown(KeyboardKeys::UP) && Window::GetKeyboard()->KeyDown(KeyboardKeys::MENU)) {
+		lockedObject->GetPhysicsObject()->AddForce(Vector3(0, 10, 0));
+	}
+	if (Window::GetKeyboard()->KeyDown(KeyboardKeys::DOWN) && Window::GetKeyboard()->KeyDown(KeyboardKeys::MENU)) {
+		lockedObject->GetPhysicsObject()->AddForce(Vector3(0, -10, 0));
 	}
 }
 
 void TutorialGame::DebugObjectMovement() {
 //If we've selected an object, we can manipulate it with some key presses
-	if (inSelectionMode && selectionObject) {
+	if (selectionObject) {
 		//Twist the selected object!
 		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::LEFT)) {
 			selectionObject->GetPhysicsObject()->AddTorque(Vector3(-10, 0, 0));
-		}
-
-		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::RIGHT)) {
-			selectionObject->GetPhysicsObject()->AddTorque(Vector3(10, 0, 0));
-		}
-
-		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::NUM7)) {
-			selectionObject->GetPhysicsObject()->AddTorque(Vector3(0, 10, 0));
-		}
-
-		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::NUM8)) {
-			selectionObject->GetPhysicsObject()->AddTorque(Vector3(0, -10, 0));
 		}
 
 		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::RIGHT)) {
@@ -235,7 +220,10 @@ void TutorialGame::DebugObjectMovement() {
 			selectionObject->GetPhysicsObject()->AddForce(Vector3(0, 0, 10));
 		}
 
-		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::NUM5)) {
+		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::UP) && Window::GetKeyboard()->KeyDown(KeyboardKeys::MENU)) {
+			selectionObject->GetPhysicsObject()->AddForce(Vector3(0, 10, 0));
+		}
+		if (Window::GetKeyboard()->KeyDown(KeyboardKeys::DOWN) && Window::GetKeyboard()->KeyDown(KeyboardKeys::MENU)) {
 			selectionObject->GetPhysicsObject()->AddForce(Vector3(0, -10, 0));
 		}
 	}
@@ -255,8 +243,10 @@ void TutorialGame::InitWorld() {
 	world->ClearAndErase();
 	physics->Clear();
 
-	InitGameExamples();
-	InitDefaultFloor();
+	gameMode->SetupScene();
+
+	//InitGameExamples();
+	//InitDefaultFloor();
 }
 
 void TutorialGame::BridgeConstraintTest() {
@@ -303,6 +293,7 @@ GameObject* TutorialGame::AddFloorToWorld(const Vector3& position, const std::st
 
 	floor->GetPhysicsObject()->SetInverseMass(0);
 	floor->GetPhysicsObject()->InitCubeInertia();
+	floor->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
 
 	world->AddGameObject(floor);
 
@@ -458,12 +449,14 @@ void TutorialGame::InitGameExamples() {
 
 	//BridgeConstraintTest();
 
-	AddCubeToWorld_OBB(Vector3(-5, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB_1");
-	AddCubeToWorld_OBB(Vector3(0, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB");
+	//AddCubeToWorld_OBB(Vector3(-5, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB_1");
+	//AddCubeToWorld_OBB(Vector3(0, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB");
 	//AddSphereToWorld(Vector3(5, 20, -10), 1.0f, 10.0f, "TestCollision_Sphere");
 	//AddCubeToWorld(Vector3(0, 20, -5), Vector3(1, 1, 1), 10.0f, "TestCollision_AABB");
 
 	//AddStateObjectToWorld(Vector3(50, 10, 0), "TestStateObject");
+
+	AddCubeToWorld_OBB(Vector3(0, 0, -5), Vector3(1, 5, 1), 0.0f, "TestStaticChannel_OBB")->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
 	
 }
 
@@ -543,6 +536,73 @@ GameObject* TutorialGame::AddBonusToWorld(const Vector3& position, const std::st
 	return apple;
 }
 
+GameObject* TutorialGame::AddFloorToWorld(const Vector3& position, Vector3 dimensions, Vector4 Colour, const std::string& name)
+{
+	GameObject* floor = new GameObject(name);
+	AABBVolume* volume = new AABBVolume(dimensions);
+	floor->SetBoundingVolume((CollisionVolume*)volume);
+	floor->GetTransform()
+		.SetScale(dimensions * 2)
+		.SetPosition(position);
+	
+	TextureBase* tex = Colour.w ? nullptr : basicTex;
+	floor->SetRenderObject(new RenderObject(&floor->GetTransform(), cubeMesh, tex, basicShader));
+	floor->GetRenderObject()->SetColour(Colour);
+
+	floor->SetPhysicsObject(new PhysicsObject(&floor->GetTransform(), floor->GetBoundingVolume()));
+
+	floor->GetPhysicsObject()->SetInverseMass(0);
+	floor->GetPhysicsObject()->InitCubeInertia();
+	floor->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+
+	world->AddGameObject(floor);
+
+	return floor;
+}
+
+GameObject* TutorialGame::AddWallToWorld(const Vector3& position, Vector3 dimensions, Vector4 Colour, const std::string& name)
+{
+	GameObject* wall = new GameObject(name);
+	AABBVolume* volume = new AABBVolume(dimensions);
+	wall->SetBoundingVolume((CollisionVolume*)volume);
+	wall->GetTransform()
+		.SetPosition(position)
+		.SetScale(dimensions * 2);
+
+	TextureBase* tex = Colour.w ? nullptr : basicTex;
+	wall->SetRenderObject(new RenderObject(&wall->GetTransform(), cubeMesh, tex, basicShader));
+	wall->GetRenderObject()->SetColour(Colour);
+	wall->SetPhysicsObject(new PhysicsObject(&wall->GetTransform(), wall->GetBoundingVolume()));
+
+	wall->GetPhysicsObject()->SetInverseMass(0);
+	wall->GetPhysicsObject()->InitCubeInertia();
+	wall->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+
+	world->AddGameObject(wall);
+
+	return wall;
+}
+
+GameObject* TutorialGame::AddAirWallToWorld(const Vector3& position, Vector3 dimensions, const std::string& name)
+{
+	GameObject* wall = new GameObject(name);
+	AABBVolume* volume = new AABBVolume(dimensions);
+	wall->SetBoundingVolume((CollisionVolume*)volume);
+	wall->GetTransform()
+		.SetPosition(position)
+		.SetScale(dimensions * 2);
+
+	wall->SetPhysicsObject(new PhysicsObject(&wall->GetTransform(), wall->GetBoundingVolume()));
+
+	wall->GetPhysicsObject()->SetInverseMass(0);
+	wall->GetPhysicsObject()->InitCubeInertia();
+	wall->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+
+	world->AddGameObject(wall);
+
+	return wall;
+}
+
 StateGameObject* TutorialGame::AddStateObjectToWorld(const Vector3& position, const std::string& name)
 {
 	StateGameObject* object = new StateGameObject(name);
@@ -573,50 +633,24 @@ letting you move the camera around.
 
 */
 bool TutorialGame::SelectObject() {
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::Q)) {
-		inSelectionMode = !inSelectionMode;
-		if (inSelectionMode) {
-			Window::GetWindow()->ShowOSPointer(true);
-			Window::GetWindow()->LockMouseToWindow(false);
+	if (Window::GetMouse()->ButtonDown(NCL::MouseButtons::LEFT)) {
+		if (selectionObject) {	//set colour to deselected;
+			selectionObject->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1));
+			selectionObject = nullptr;
+			lockedObject	= nullptr;
+		}
+
+		Ray ray = CollisionDetection::BuildRayFromMouse(*world->GetMainCamera());
+
+		RayCollision closestCollision;
+		if (world->Raycast(ray, closestCollision, true)) {
+			selectionObject = (GameObject*)closestCollision.node;
+			selectionObject->GetRenderObject()->SetColour(Vector4(0, 1, 0, 1));
+			return true;
 		}
 		else {
-			Window::GetWindow()->ShowOSPointer(false);
-			Window::GetWindow()->LockMouseToWindow(true);
+			return false;
 		}
-	}
-	if (inSelectionMode) {
-		renderer->DrawString("Press Q to change to camera mode!", Vector2(5, 85));
-
-		if (Window::GetMouse()->ButtonDown(NCL::MouseButtons::LEFT)) {
-			if (selectionObject) {	//set colour to deselected;
-				selectionObject->GetRenderObject()->SetColour(Vector4(1, 1, 1, 1));
-				selectionObject = nullptr;
-				lockedObject	= nullptr;
-			}
-
-			Ray ray = CollisionDetection::BuildRayFromMouse(*world->GetMainCamera());
-
-			RayCollision closestCollision;
-			if (world->Raycast(ray, closestCollision, true)) {
-				selectionObject = (GameObject*)closestCollision.node;
-				selectionObject->GetRenderObject()->SetColour(Vector4(0, 1, 0, 1));
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-	}
-	else {
-		renderer->DrawString("Press Q to change to select mode!", Vector2(5, 85));
-	}
-
-	if (lockedObject) {
-		renderer->DrawString("Press L to unlock object!", Vector2(5, 80));
-	}
-
-	else if(selectionObject){
-		renderer->DrawString("Press L to lock selected object object!", Vector2(5, 80));
 	}
 
 	if (Window::GetKeyboard()->KeyPressed(NCL::KeyboardKeys::L)) {
@@ -641,13 +675,11 @@ added linear motion into our physics system. After the second tutorial, objects 
 line - after the third, they'll be able to twist under torque aswell.
 */
 void TutorialGame::MoveSelectedObject() {
-	renderer->DrawString("Click Force:" + std::to_string(forceMagnitude), Vector2(10, 20));
-	forceMagnitude += Window::GetMouse()->GetWheelMovement() * 100.0f;
 	if (!selectionObject)
 	{
 		return;
 	}
-	if (Window::GetMouse()->ButtonPressed(NCL::MouseButtons::RIGHT))
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::SPACE))
 	{
 		Ray ray = CollisionDetection::BuildRayFromMouse(*world->GetMainCamera());
 		RayCollision closestCollision;

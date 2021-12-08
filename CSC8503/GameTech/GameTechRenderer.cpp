@@ -4,6 +4,9 @@
 #include "../../Common/Vector2.h"
 #include "../../Common/Vector3.h"
 #include "../../Common/TextureLoader.h"
+
+#include "GameUI.h"
+
 using namespace NCL;
 using namespace Rendering;
 using namespace CSC8503;
@@ -57,17 +60,6 @@ GameTechRenderer::~GameTechRenderer()	{
 	glDeleteFramebuffers(1, &shadowFBO);
 }
 
-void GameTechRenderer::SwitchToColour(Vector4 inColour)
-{
-	renderScene = false;
-	screenColour = inColour;
-}
-
-void GameTechRenderer::SwitchToScene()
-{
-	renderScene = true;
-}
-
 void GameTechRenderer::LoadSkybox() {
 	string filenames[6] = {
 		"/Cubemap/skyrender0004.png",
@@ -110,21 +102,16 @@ void GameTechRenderer::LoadSkybox() {
 
 void GameTechRenderer::RenderFrame() {
 	
-	if (renderScene)
-	{
-		glEnable(GL_CULL_FACE);
-		glClearColor(1, 1, 1, 1);
-		BuildObjectList();
-		SortObjectList();
-		RenderShadowMap();
-		RenderSkybox();
-		RenderCamera();
-		glDisable(GL_CULL_FACE); //Todo - text indices are going the wrong way...
-	}
-	else
-	{
-		glClearColor(screenColour.x, screenColour.y, screenColour.z, 1);
-	}
+	glClearColor(1, 1, 1, 1);
+	glEnable(GL_CULL_FACE);
+	BuildObjectList();
+	SortObjectList();
+	RenderShadowMap();
+	RenderSkybox();
+	RenderCamera();
+	glDisable(GL_CULL_FACE); //Todo - text indices are going the wrong way...
+
+	if (gameUI) gameUI->DrawUI();
 }
 
 void GameTechRenderer::BuildObjectList() {

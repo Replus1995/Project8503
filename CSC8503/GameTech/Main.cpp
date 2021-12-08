@@ -1,4 +1,5 @@
 #include "../../Common/Window.h"
+#include "../../Common/Win32Window.h"
 
 #include "../CSC8503Common/StateMachine.h"
 #include "../CSC8503Common/StateTransition.h"
@@ -7,9 +8,11 @@
 #include "../CSC8503Common/NavigationGrid.h"
 
 #include "TutorialGame.h"
-#include "GameTechRenderer.h"
+#include "GameUI.h"
 
 #include "DebugAI.h"
+
+#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" ) 
 
 using namespace NCL;
 using namespace CSC8503;
@@ -42,18 +45,21 @@ int main() {
 	}
 #endif //  SimpleTestAI
 
-	Window*w = Window::CreateGameWindow("CSC8503 Game technology!", 1280, 720);
-
+	Window*w = Window::CreateGameWindow("GameTech", 1920, 1080, true);
 	if (!w->HasInitialised()) {
 		return -1;
-	}	
-	
+	}
+
 	//DebugAI::TestPushdownAutomata(w);
 
-	w->ShowOSPointer(false);
+	w->ShowOSPointer(true);
 	w->LockMouseToWindow(true);
 
 	TutorialGame* g = new TutorialGame();
+	GameUI* ui = new GameUI();
+	g->SetUI(ui);
+	//ui->PushMenu(GameMenuPtr(new GameMenuDemo()));
+
 	w->GetTimer()->GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
 	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyboardKeys::ESCAPE)) {
 		float dt = w->GetTimer()->GetTimeDeltaSeconds();
@@ -72,10 +78,14 @@ int main() {
 			w->SetWindowPosition(0, 0);
 		}
 
-		w->SetTitle("Gametech frame time:" + std::to_string(1000.0f * dt));
+		//w->SetTitle("Gametech frame time:" + std::to_string(1000.0f * dt));
+		ui->UpdateUI();
 		g->UpdateGame(dt);
 
-		DebugAI::TestAndDisplayPathFinding(); //Test navigation
+		//DebugAI::TestAndDisplayPathFinding(); //Test navigation
 	}
+
+	delete ui;
+	delete g;
 	Window::DestroyGameWindow();
 }

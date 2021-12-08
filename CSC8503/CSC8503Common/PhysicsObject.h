@@ -6,9 +6,15 @@ using namespace NCL::Maths;
 
 namespace NCL {
 	class CollisionVolume;
-	
 	namespace CSC8503 {
 		class Transform;
+		enum PhysicsChannel : unsigned int
+		{
+			PhysCh_Static = 1,
+			PhysCh_Dynamic = 1 << 1,
+			PhysCh_RayCast = 1 << 2,
+		};
+
 
 		class PhysicsObject	{
 		public:
@@ -68,6 +74,18 @@ namespace NCL {
 				return inverseInteriaTensor;
 			}
 
+			unsigned int GetPhysicsChannel() const {
+				return physicsChannel;
+			}
+			void SetPhysicsChannel(unsigned int newChannel) {
+				physicsChannel = newChannel;
+			}
+			void AddPhysicsChannel(PhysicsChannel newChannel) {
+				physicsChannel |= newChannel;
+			}
+			bool CanCollide(PhysicsObject* b) const;
+			bool HasChannel(PhysicsChannel channel) const;
+
 		protected:
 			const CollisionVolume* volume;
 			Transform*		transform;
@@ -86,6 +104,9 @@ namespace NCL {
 			Vector3 torque;
 			Vector3 inverseInertia;
 			Matrix3 inverseInteriaTensor;
+
+			//channel
+			unsigned int physicsChannel;
 		};
 	}
 }

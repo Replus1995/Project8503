@@ -35,10 +35,13 @@ bool CollisionDetection::RayIntersection(const Ray& r,GameObject& object, RayCol
 
 	const Transform& worldTransform = object.GetTransform();
 	const CollisionVolume* volume	= object.GetBoundingVolume();
+	const PhysicsObject* physObj	= object.GetPhysicsObject();
 
-	if (!volume) {
+	if (!volume || !physObj) {
 		return false;
 	}
+
+	if (!physObj->HasChannel(PhysCh_RayCast)) return false;
 
 	switch (volume->type) {
 		case VolumeType::AABB:		hasCollided = RayAABBIntersection(r, worldTransform, (const AABBVolume&)*volume, collision); break;

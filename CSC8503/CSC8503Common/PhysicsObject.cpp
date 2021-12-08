@@ -11,6 +11,7 @@ PhysicsObject::PhysicsObject(Transform* parentTransform, const CollisionVolume* 
 	inverseMass = 1.0f;
 	elasticity	= 0.8f;
 	friction	= 0.8f;
+	physicsChannel = PhysCh_Dynamic;
 }
 
 PhysicsObject::~PhysicsObject()	{
@@ -74,4 +75,21 @@ void PhysicsObject::UpdateInertiaTensor() {
 	Matrix3 orientation		= Matrix3(q);
 
 	inverseInteriaTensor = orientation * Matrix3::Scale(inverseInertia) *invOrientation;
+}
+
+bool PhysicsObject::CanCollide(PhysicsObject* b) const
+{
+	unsigned int channelB = b->GetPhysicsChannel();
+	unsigned int channelOverlap = physicsChannel & channelB;
+	if (channelOverlap > 0)
+	{
+		if ((channelOverlap & PhysCh_Static) > 0) return false; //Check static channel
+		return true;
+	}
+	return false;
+}
+
+bool PhysicsObject::HasChannel(PhysicsChannel channel) const
+{
+	return  (physicsChannel & channel) != 0;
 }

@@ -19,12 +19,13 @@ const Vector4 Debug::MAGENTA	= Vector4(1, 0, 1, 1);
 const Vector4 Debug::CYAN		= Vector4(0, 1, 1, 1);
 
 
-void Debug::Print(const std::string& text, const Vector2&pos, const Vector4& colour) {
+void Debug::Print(const std::string& text, const Vector2&pos, const Vector4& colour, float size) {
 	DebugStringEntry newEntry;
 
 	newEntry.data		= text;
 	newEntry.position	= pos;
 	newEntry.colour		= colour;
+	newEntry.size		= size;
 
 	stringEntries.emplace_back(newEntry);
 }
@@ -61,7 +62,7 @@ void Debug::FlushRenderables(float dt) {
 		return;
 	}
 	for (const auto& i : stringEntries) {
-		renderer->DrawString(i.data, i.position);
+		renderer->DrawString(i.data, i.position, i.colour, i.size);
 	}
 	int trim = 0;
 	for (int i = 0; i < lineEntries.size(); ) {

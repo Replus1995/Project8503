@@ -1,7 +1,10 @@
 #pragma once
+#include <memory>
 #include "GameTechRenderer.h"
 #include "../CSC8503Common/PhysicsSystem.h"
 #include "../CSC8503Common/StateGameObject.h"
+
+class GameUI;
 
 namespace NCL {
 	namespace CSC8503 {
@@ -11,12 +14,15 @@ namespace NCL {
 			~TutorialGame();
 
 			virtual void UpdateGame(float dt);
+			void UpdateKeyActions(float dt);
+
+			void SetUI(GameUI* ui);
 
 		protected:
 			void InitialiseAssets();
 
 			void InitCamera();
-			void UpdateKeys();
+			
 
 			void InitWorld();
 
@@ -44,6 +50,11 @@ namespace NCL {
 			GameObject* AddEnemyToWorld(const Vector3& position, const std::string& name);
 			GameObject* AddBonusToWorld(const Vector3& position, const std::string& name);
 
+
+			GameObject* AddFloorToWorld(const Vector3& position, Vector3 dimensions, Vector4 Colour, const std::string& name);
+			GameObject* AddWallToWorld(const Vector3& position, Vector3 dimensions, Vector4 Colour, const std::string& name);
+			GameObject* AddAirWallToWorld(const Vector3& position, Vector3 dimensions, const std::string& name);
+
 			StateGameObject* AddStateObjectToWorld(const Vector3& position, const std::string& name);
 
 			GameTechRenderer*	renderer;
@@ -51,7 +62,6 @@ namespace NCL {
 			GameWorld*			world;
 
 			bool useGravity;
-			bool inSelectionMode;
 
 			float		forceMagnitude;
 
@@ -75,7 +85,14 @@ namespace NCL {
 			void LockCameraToObject(GameObject* o) {
 				lockedObject = o;
 			}
+			
+			friend class GameMode;
+			std::unique_ptr<GameMode> gameMode = nullptr;
+			friend class BallGameMode;
+			friend class MazeGameMode;
 
+			friend class TutorialMenu;
+			std::shared_ptr<TutorialMenu> gameMenu = nullptr;
 		};
 	}
 }

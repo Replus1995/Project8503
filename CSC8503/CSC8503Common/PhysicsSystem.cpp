@@ -69,7 +69,7 @@ int realHZ		= idealHZ;
 float realDT	= idealDT;
 
 void PhysicsSystem::Update(float dt) {	
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::B)) {
+	/*if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::B)) {
 		useBroadPhase = !useBroadPhase;
 		std::cout << "Setting broadphase to " << useBroadPhase << std::endl;
 	}
@@ -80,7 +80,7 @@ void PhysicsSystem::Update(float dt) {
 	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::O)) {
 		constraintIterationCount++;
 		std::cout << "Setting constraint iterations to " << constraintIterationCount << std::endl;
-	}
+	}*/
 
 	dTOffset += dt; //We accumulate time delta here - there might be remainders from previous frame!
 
@@ -287,8 +287,13 @@ void PhysicsSystem::BroadPhase() {
 		{
 			for (auto j = std::next(i); j != data.end(); j++)
 			{
-				info.a = min((*i).object, (*j).object);
-				info.b = max((*i).object, (*j).object);
+				GameObject* objA = (*i).object;
+				GameObject* objB = (*j).object;
+				if (!objA->GetPhysicsObject() || !objB->GetPhysicsObject()) continue;
+				if (!objA->GetPhysicsObject()->CanCollide(objB->GetPhysicsObject())) 
+					continue;
+				info.a = min(objA, objB);
+				info.b = max(objA, objB);
 				broadphaseCollisions.insert(info);
 			}
 		}
