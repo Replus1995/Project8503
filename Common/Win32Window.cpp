@@ -17,9 +17,9 @@ Win32Window::Win32Window(const std::string& title, int sizeX, int sizeY, bool fu
 
 	defaultSize = Vector2((float)sizeX, (float)sizeY);
 	fullscreenSize = Vector2(::GetDeviceCaps(::GetWindowDC(NULL), HORZRES), ::GetDeviceCaps(::GetWindowDC(NULL), VERTRES));
+	defaultPosition = Vector2((float)offsetX, (float)offsetY);
 
-	position.x = (float)offsetX;
-	position.y = (float)offsetY;
+	fullScreen ? position = Vector2(0, 0) : position = defaultPosition;
 	fullScreen ? size = fullscreenSize : size = defaultSize;
 
 	windowInstance = GetModuleHandle(NULL);
@@ -64,8 +64,8 @@ Win32Window::Win32Window(const std::string& title, int sizeX, int sizeY, bool fu
 	WINDOWCLASS,    // name of the window class
 	title.c_str(),   // title of the window
 	fullScreen ? WS_POPUP|WS_VISIBLE : WS_OVERLAPPEDWINDOW|WS_POPUP|WS_VISIBLE|WS_SYSMENU|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,    // window style
-						(int)fullScreen ? 0 : position.x,	// x-position of the window
-                        (int)fullScreen ? 0 : position.y,	// y-position of the window
+						(int)position.x,	// x-position of the window
+                        (int)position.y,	// y-position of the window
                         (int)size.x,		// width of the window
                         (int)size.y,		// height of the window
 						NULL,				// No parent window!
@@ -76,10 +76,6 @@ Win32Window::Win32Window(const std::string& title, int sizeX, int sizeY, bool fu
  	/*if(!windowHandle) {
 		std::cout << "Window::Window(): Failed to create window!" << std::endl;
 		return;
-	}*/
-
-	/*if (fullScreen) {
-		::SetWindowPos(windowHandle, NULL, 0, 0, size.x, size.y, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 	}*/
 
 
@@ -112,10 +108,18 @@ Win32Window::~Win32Window(void)	{
 bool	Win32Window::InternalUpdate() {
 	MSG		msg;
 
+	RECT wRect, cRect;
+	::GetWindowRect(windowHandle, &wRect);
+	::GetClientRect(windowHandle, &cRect);
+
 	POINT pt;
 	GetCursorPos(&pt);
-	ScreenToClient(windowHandle, &pt);
-	winMouse->SetAbsolutePosition(Vector2((float)pt.x, (float)pt.y));
+	//ScreenToClient(windowHandle, &pt);
+	//winMouse->SetAbsolutePosition(Vector2((float)pt.x, (float)pt.y));
+	Vector2 windowPos((float)pt.x, (float)pt.y);
+	windowPos.x -= (wRect.right + wRect.left - cRect.right + cRect.left) / 2;
+	windowPos.y -= wRect.bottom - cRect.bottom + cRect.top - 8;
+	winMouse->SetAbsolutePosition(windowPos);
 
 	while(PeekMessage(&msg,windowHandle,0,0,PM_REMOVE)) {
 		CheckMessages(msg); 
@@ -129,19 +133,31 @@ void	Win32Window::UpdateTitle()	{
 }
 
 void	Win32Window::SetFullScreen(bool fullScreen) {
-	
+	Vector2 newSize, newPos;
 	if (fullScreen) 
 	{
+		newSize = fullscreenSize;
+		newPos = Vector2(0, 0);
 		SetWindowLong(windowHandle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-		::SetWindowPos(windowHandle, NULL, 0, 0, fullscreenSize.x, fullscreenSize.y, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-		size = fullscreenSize;
 	}
 	else
 	{
+		newSize = defaultSize;
+		newPos = defaultPosition;
 		SetWindowLong(windowHandle, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
-		::SetWindowPos(windowHandle, NULL, position.x, position.y, defaultSize.x, defaultSize.y, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-		size = defaultSize;
 	}
+	::SetWindowPos(windowHandle, NULL, newPos.x, newPos.y, newSize.x, newSize.y, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+	{
+		RECT cRect;
+		::GetClientRect(windowHandle, &cRect);
+		size.x = cRect.right - cRect.left;
+		size.y = cRect.bottom - cRect.top;
+		position.x = cRect.left;
+		position.y = cRect.top;
+	}
+	//winMouse->UpdateWindowPosition(position);
+	//SetActiveWindow(windowHandle);
+	winMouse->SetAbsolutePositionBounds(size);
 	ResizeRenderer();
 	if (init && lockMouse) LockMouseToWindow(true);
 	return;
@@ -193,8 +209,6 @@ void	Win32Window::SetFullScreen(bool fullScreen) {
 
 void Win32Window::CheckMessages(MSG &msg)	{
 	Win32Window* thisWindow = (Win32Window*)window;
-
-	
 
 	switch (msg.message)	{				// Is There A Message Waiting?
 		case (WM_QUIT):
