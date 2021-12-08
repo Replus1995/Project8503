@@ -89,6 +89,7 @@ namespace NCL {
 			Win32Keyboard*  winKeyboard;
 
 			Vector2 fullscreenSize;
+			Vector2 defaultPosition;
 			ExtraMsgFunc exMsgFunc = nullptr;
 		};
 	}
