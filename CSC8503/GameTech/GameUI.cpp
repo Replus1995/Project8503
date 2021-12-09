@@ -137,5 +137,5 @@ Win32Code::ExInputResult ImguiProcessInput(void* data)
             io.KeyAlt = down;
 
     }
-    return { io.WantCaptureMouse, io.WantCaptureKeyboard };
+    return { false, io.WantCaptureKeyboard };
 }

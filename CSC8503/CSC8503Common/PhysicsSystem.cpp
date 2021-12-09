@@ -316,7 +316,8 @@ void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, Collis
 	Vector3 inertiaA = Vector3::Cross(physA->GetInertiaTensor() * Vector3::Cross(relativeA, p.normal), relativeA);
 	Vector3 inertiaB = Vector3::Cross(physB->GetInertiaTensor() * Vector3::Cross(relativeB, p.normal), relativeB);
 	float angularEffect = Vector3::Dot(inertiaA + inertiaB, p.normal);
-	float cRestitution = 0.66f;
+	//float cRestitution = 0.66f;
+	float cRestitution = physA->GetElasticity() * physB->GetElasticity();
 	float j = (-(1.0f + cRestitution) * impulseForce) / (totalMass + angularEffect);
 	Vector3 fullImpulse = p.normal * j;
 	physA->ApplyLinearImpulse(-fullImpulse);
@@ -325,10 +326,52 @@ void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, Collis
 	physB->ApplyAngularImpulse(Vector3::Cross(relativeB, fullImpulse));
 
 	//Calculate friction
-	Vector3 linVelocityDirA = physA->GetLinearVelocity().Normalised();
-	Vector3 linVelocityDirB = physB->GetLinearVelocity().Normalised();
-	Vector3 planeVelocityDirA = (linVelocityDirA - p.normal * Vector3::Dot(p.normal, linVelocityDirA)).Normalised();
-	Vector3 planeVelocityDirB = (linVelocityDirB - p.normal * Vector3::Dot(p.normal, linVelocityDirB)).Normalised();
+	float frictionM = physA->GetFriction() * physB->GetFriction();
+	Vector3 frictionImpulseA = GetImpulseFriction(physA, -p.normal, contactVelocity, frictionM, j);
+	Vector3 frictionImpulseB = GetImpulseFriction(physB, p.normal, contactVelocity, frictionM, j);
+	//printf("linVelocityDir: (%f,%f,%f)\n", linVelocityDirB.x, linVelocityDirB.y, linVelocityDirB.z);
+	//printf("planeVelocityDir: (%f,%f,%f)\n", planeVelocityDirB.x, planeVelocityDirB.y, planeVelocityDirB.z);
+
+	physA->ApplyLinearImpulse(frictionImpulseA);
+	physB->ApplyLinearImpulse(frictionImpulseB);
+	physA->ApplyAngularImpulse(Vector3::Cross(relativeA, frictionImpulseA));
+	physB->ApplyAngularImpulse(Vector3::Cross(relativeB, frictionImpulseB));
+}
+
+Vector3 PhysicsSystem::GetImpulseFriction(PhysicsObject* physObj, const Vector3& normal, const Vector3& v, float m, float j)
+{
+	if (physObj->GetInverseMass() == 0) return Vector3();
+
+	Vector3 tangent;
+	if (Vector3::Dot(v, normal) != 0)
+	{
+		tangent = v - normal * Vector3::Dot(v, normal);
+	}
+	else
+	{
+		if (Vector3::Dot(physObj->GetForce(), normal) != 0)
+		{
+			tangent = physObj->GetForce() - normal * Vector3::Dot(physObj->GetForce(), normal);
+		}
+	}
+	
+	if (tangent.Length() < 0.0001f) return Vector3();
+	tangent.Normalise();
+
+	float mass = 1 / physObj->GetInverseMass();
+	float staticJ = (m + 0.05) * j;
+	float dynamicJ = m * j;
+	Vector3 frictionForce;
+	if (Vector3::Dot(v, tangent) == 0 && Vector3::Dot(v * mass, tangent) < staticJ)
+	{
+		frictionForce = -tangent * Vector3::Dot(v * mass, tangent);
+	}
+	else
+	{
+		frictionForce = -tangent * dynamicJ;
+	}
+
+	return frictionForce;
 }
 
 /*

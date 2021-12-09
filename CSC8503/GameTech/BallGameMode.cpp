@@ -12,7 +12,7 @@ void BallGameMode::SetupScene()
 	//Add floor
 	gameInst->AddFloorToWorld(Vector3(0, -2, 0), Vector3(100,2,100), Vector4(1,1,1,0), "DefaultFloor");
 	//Add air wall
-	gameInst->AddAirWallToWorld(Vector3(0, 12, 0), Vector3(100, 2, 100), "AirWall_Top");
+	//gameInst->AddAirWallToWorld(Vector3(0, 12, 0), Vector3(100, 2, 100), "AirWall_Top");
 
 
 	//Add wall

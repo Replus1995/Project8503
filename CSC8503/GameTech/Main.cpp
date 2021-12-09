@@ -45,7 +45,7 @@ int main() {
 	}
 #endif //  SimpleTestAI
 
-	Window*w = Window::CreateGameWindow("GameTech", 1920, 1080, false);
+	Window*w = Window::CreateGameWindow("GameTech", 1280, 720, false);
 	if (!w->HasInitialised()) {
 		return -1;
 	}

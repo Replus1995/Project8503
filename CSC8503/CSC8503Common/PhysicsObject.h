@@ -21,28 +21,24 @@ namespace NCL {
 			PhysicsObject(Transform* parentTransform, const CollisionVolume* parentVolume);
 			~PhysicsObject();
 
-			Vector3 GetLinearVelocity() const {
-				return linearVelocity;
-			}
+			Vector3 GetLinearVelocity() const { return linearVelocity; };
+			Vector3 GetAngularVelocity() const { return angularVelocity; };
 
-			Vector3 GetAngularVelocity() const {
-				return angularVelocity;
-			}
+			Vector3 GetTorque() const { return torque; };
+			Vector3 GetForce() const { return force; };
 
-			Vector3 GetTorque() const {
-				return torque;
-			}
+			void SetInverseMass(float invMass) { inverseMass = invMass; };
+			float GetInverseMass() const { return inverseMass; };
+			void SetElasticity(float inElasticity) { elasticity = inElasticity; };
+			float GetElasticity() const { return elasticity; };
+			void SetFriction(float inFriction) { friction = inFriction; };
+			float GetFriction() const { return friction; };
 
-			Vector3 GetForce() const {
-				return force;
-			}
-
-			void SetInverseMass(float invMass) {
+			void UpdatePhysicsScales(float invMass, float inElasticity, float inFriction)
+			{
 				inverseMass = invMass;
-			}
-
-			float GetInverseMass() const {
-				return inverseMass;
+				elasticity = inElasticity;
+				friction = inFriction;
 			}
 
 			void ApplyAngularImpulse(const Vector3& force);
@@ -107,6 +103,7 @@ namespace NCL {
 
 			//channel
 			unsigned int physicsChannel;
+
 		};
 	}
 }

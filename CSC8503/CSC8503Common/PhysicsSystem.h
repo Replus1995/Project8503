@@ -45,6 +45,8 @@ namespace NCL {
 			void UpdateObjectAABBs();
 
 			void ImpulseResolveCollision(GameObject& a , GameObject&b, CollisionDetection::ContactPoint& p) const;
+			static Vector3 GetImpulseFriction(PhysicsObject* physObj, const Vector3& normal, const Vector3& v, float m, float j);
+
 
 			GameWorld& gameWorld;
 
