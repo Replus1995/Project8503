@@ -2,6 +2,8 @@
 #include <vector>
 #include "GameMenu.h"
 
+struct ExInputResult;
+
 class GameUI
 {
 public:
@@ -16,7 +18,6 @@ public:
 	void DrawUI() const;
 
 	static GameUI* GetInstance();
-	static void ProcessMsg(void* inMsg);
 private:
 	bool IsValid = false;
 	std::vector<GameMenuPtr> menus;

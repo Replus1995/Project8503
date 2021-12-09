@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
+#include <functional>
 #include "Ray.h"
 #include "CollisionDetection.h"
-#include "QuadTree.h"
+
 namespace NCL {
 		class Camera;
 		using Maths::Ray;

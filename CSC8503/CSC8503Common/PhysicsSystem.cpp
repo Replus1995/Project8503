@@ -3,12 +3,11 @@
 #include "GameObject.h"
 #include "CollisionDetection.h"
 #include "../../Common/Quaternion.h"
-
 #include "Constraint.h"
-
+//#include "QuadTree.h"
 #include "Debug.h"
 
-#include <functional>
+
 using namespace NCL;
 using namespace CSC8503;
 
@@ -23,7 +22,7 @@ PhysicsSystem::PhysicsSystem(GameWorld& g) : gameWorld(g)	{
 	applyGravity	= false;
 	useBroadPhase	= true;	
 	dTOffset		= 0.0f;
-	globalDamping	= 0.995f;
+	globalDamping	= 0.8f;
 	SetGravity(Vector3(0.0f, -9.8f, 0.0f));
 }
 
@@ -32,6 +31,78 @@ PhysicsSystem::~PhysicsSystem()	{
 
 void PhysicsSystem::SetGravity(const Vector3& g) {
 	gravity = g;
+}
+
+void PhysicsSystem::BuildSpaceTree()
+{
+	if (!spaceOctree) spaceOctree.reset(new OcTree<GameObject*>(Vector3(1024, 1024, 1024), 7, 6));
+	spaceOctree->Reset();
+
+	GameObjectIterator first, last;
+	gameWorld.GetObjectIterators(first, last);
+	for (auto i = first; i != last; i++)
+	{
+		Vector3 halfSizes;
+		if (!(*i)->GetBroadphaseAABB(halfSizes))
+		{
+			continue;
+		}
+		Vector3 pos = (*i)->GetTransform().GetPosition();
+		spaceOctree->Insert(*i, pos, halfSizes);
+	}
+}
+
+bool PhysicsSystem::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject) const
+{
+	GameObjectIterator first, last;
+	std::vector<GameObject*> ObjectsToTest;
+	if (spaceOctree)
+	{
+		spaceOctree->RayIntersect(r, [&](std::list<OcTreeEntry<GameObject*>>& data)
+		{
+			for (auto i = data.begin(); i != data.end(); i++)
+			{
+				ObjectsToTest.push_back((*i).object);
+			}
+		});
+		first = ObjectsToTest.begin();
+		last = ObjectsToTest.end();
+	}
+	else
+	{
+		gameWorld.GetObjectIterators(first, last);
+	}
+
+	RayCollision collision;
+	for (auto i = first; i != last; i++)
+	{
+		GameObject* object = *i;
+		if (!object->GetBoundingVolume()) { //objects might not be collideable etc...
+			continue;
+		}
+		RayCollision thisCollision;
+		if (CollisionDetection::RayIntersection(r, *object, thisCollision)) {
+
+			if (!closestObject) {
+				closestCollision = collision;
+				closestCollision.node = object;
+				return true;
+			}
+			else {
+				if (thisCollision.rayDistance < collision.rayDistance) {
+					thisCollision.node = object;
+					collision = thisCollision;
+				}
+			}
+		}
+	}
+
+	if (collision.node) {
+		closestCollision = collision;
+		closestCollision.node = collision.node;
+		return true;
+	}
+	return false;
 }
 
 /*
@@ -252,6 +323,12 @@ void PhysicsSystem::ImpulseResolveCollision(GameObject& a, GameObject& b, Collis
 	physB->ApplyLinearImpulse(fullImpulse);
 	physA->ApplyAngularImpulse(Vector3::Cross(relativeA, -fullImpulse));
 	physB->ApplyAngularImpulse(Vector3::Cross(relativeB, fullImpulse));
+
+	//Calculate friction
+	Vector3 linVelocityDirA = physA->GetLinearVelocity().Normalised();
+	Vector3 linVelocityDirB = physB->GetLinearVelocity().Normalised();
+	Vector3 planeVelocityDirA = (linVelocityDirA - p.normal * Vector3::Dot(p.normal, linVelocityDirA)).Normalised();
+	Vector3 planeVelocityDirB = (linVelocityDirB - p.normal * Vector3::Dot(p.normal, linVelocityDirB)).Normalised();
 }
 
 /*
@@ -265,22 +342,29 @@ compare the collisions that we absolutely need to.
 
 void PhysicsSystem::BroadPhase() {
 	broadphaseCollisions.clear();
-	QuadTree<GameObject*> tree(Vector2(1024, 1024), 7, 6);
-	GameObjectIterator first, last;
-	gameWorld.GetObjectIterators(first, last);
-	for (auto i = first; i != last; i++)
-	{
-		Vector3 halfSizes;
-		if (!(*i)->GetBroadphaseAABB(halfSizes))
-		{
-			continue;
-		}
-		Vector3 pos = (*i)->GetTransform().GetPosition();
-		tree.Insert(*i, pos, halfSizes);
-	}
 
-	tree.OperateOnContents(
-		[&](std::list<QuadTreeEntry<GameObject*>>& data)
+	//QuadTree<GameObject*> tree(Vector2(1024, 1024), 7, 6);
+	//if (!spaceOctree) spaceOctree.reset(new OcTree<GameObject*>(Vector3(1024, 1024, 1024), 7, 6));
+	//spaceOctree->Reset();
+
+	//GameObjectIterator first, last;
+	//gameWorld.GetObjectIterators(first, last);
+	//for (auto i = first; i != last; i++)
+	//{
+	//	Vector3 halfSizes;
+	//	if (!(*i)->GetBroadphaseAABB(halfSizes))
+	//	{
+	//		continue;
+	//	}
+	//	Vector3 pos = (*i)->GetTransform().GetPosition();
+	//	//tree.Insert(*i, pos, halfSizes);
+	//	spaceOctree->Insert(*i, pos, halfSizes);
+	//}
+
+	/*tree.OperateOnContents(
+		[&](std::list<QuadTreeEntry<GameObject*>>& data)*/
+	spaceOctree->OperateOnContents(
+		[&](std::list<OcTreeEntry<GameObject*>>& data)
 	{
 		CollisionDetection::CollisionInfo info;
 		for (auto i = data.begin(); i != data.end(); i++)
@@ -365,8 +449,8 @@ the world, looking for collisions.
 void PhysicsSystem::IntegrateVelocity(float dt) {
 	GameObjectIterator first, last;
 	gameWorld.GetObjectIterators(first, last);
-	float frameLinearDamping = 1.0f - (0.4f * dt);
-	float frameAngularDamping = 1.0f - (0.4f * dt);
+	float frameLinearDamping = 1.0f - ((1.0f - globalDamping) * dt);
+	float frameAngularDamping = 1.0f - ((1.0f - globalDamping) * dt);
 	for (auto i = first; i != last; i++)
 	{
 		PhysicsObject* object = (*i)->GetPhysicsObject();

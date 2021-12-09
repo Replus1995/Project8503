@@ -1,6 +1,8 @@
 #pragma once
 #include "../CSC8503Common/GameWorld.h"
 #include <set>
+#include <memory>
+#include "Octree.h";
 
 namespace NCL {
 	namespace CSC8503 {
@@ -22,6 +24,11 @@ namespace NCL {
 			}
 
 			void SetGravity(const Vector3& g);
+
+			void BuildSpaceTree();
+
+			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject) const;
+
 		protected:
 			void BasicCollisionDetection();
 			void BroadPhase();
@@ -51,6 +58,8 @@ namespace NCL {
 
 			bool useBroadPhase		= true;
 			int numCollisionFrames	= 5;
+
+			std::unique_ptr<OcTree<GameObject*>> spaceOctree;
 		};
 	}
 }

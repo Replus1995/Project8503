@@ -8,12 +8,13 @@
 using namespace NCL;
 
 GameUI* GameUI::GamesUI_Instance = nullptr;
+Win32Code::ExInputResult ImguiProcessInput(void* data);
 
 GameUI::GameUI()
 {
     Win32Code::Win32Window* win32_w = dynamic_cast<Win32Code::Win32Window*>(Window::GetWindow());
     if (!win32_w) return;
-    win32_w->SetExtraMsgFunc(GameUI::ProcessMsg);
+    win32_w->SetExtraMsgFunc(ImguiProcessInput);
 
     IsValid = true;
 
@@ -93,9 +94,48 @@ GameUI* GameUI::GetInstance()
     return GamesUI_Instance;
 }
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-void GameUI::ProcessMsg(void* inMsg)
+Win32Code::ExInputResult ImguiProcessInput(void* data)
 {
-    MSG& msg = *(MSG*)inMsg;
-    ImGui_ImplWin32_WndProcHandler(msg.hwnd, msg.message, msg.wParam, msg.lParam);
+    ImGuiIO& io = ImGui::GetIO();
+    RAWINPUT* rawInput = (RAWINPUT*)data;
+
+    if (rawInput->header.dwType == RIM_TYPEMOUSE)
+    {
+        static int btDowns[5] = { RI_MOUSE_BUTTON_1_DOWN,
+                                  RI_MOUSE_BUTTON_2_DOWN,
+                                  RI_MOUSE_BUTTON_3_DOWN,
+                                  RI_MOUSE_BUTTON_4_DOWN,
+                                  RI_MOUSE_BUTTON_5_DOWN };
+
+        static int btUps[5] = { RI_MOUSE_BUTTON_1_UP,
+                                RI_MOUSE_BUTTON_2_UP,
+                                RI_MOUSE_BUTTON_3_UP,
+                                RI_MOUSE_BUTTON_4_UP,
+                                RI_MOUSE_BUTTON_5_UP };
+
+        for (int i = 0; i < 5; ++i) {
+            if (rawInput->data.mouse.usButtonFlags & btDowns[i]) {
+                io.MouseDown[i] = true;
+            }
+            else if (rawInput->data.mouse.usButtonFlags & btUps[i]) {
+                io.MouseDown[i] = false;
+            }
+        }
+    }
+    else if (rawInput->header.dwType == RIM_TYPEKEYBOARD)
+    {
+        USHORT key = rawInput->data.keyboard.VKey;
+        bool down = !(rawInput->data.keyboard.Flags & RI_KEY_BREAK);
+
+        if (key < 256) 
+            io.KeysDown[key] = down;
+        if (key == VK_CONTROL)
+            io.KeyCtrl = down;
+        if (key == VK_SHIFT)
+            io.KeyShift = down;
+        if (key == VK_MENU)
+            io.KeyAlt = down;
+
+    }
+    return { io.WantCaptureMouse, io.WantCaptureKeyboard };
 }

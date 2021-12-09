@@ -144,6 +144,7 @@
     <ClInclude Include="NavigationMesh.h" />
     <ClInclude Include="NavigationPath.h" />
     <ClInclude Include="OBBVolume.h" />
+    <ClInclude Include="Octree.h" />
     <ClInclude Include="PositionConstraint.h" />
     <ClInclude Include="SphereVolume.h" />
     <ClInclude Include="CollisionVolume.h" />
@@ -176,7 +177,6 @@
     <ClCompile Include="PhysicsSystem.cpp" />
     <ClCompile Include="PositionConstraint.cpp" />
     <ClCompile Include="PushdownMachine.cpp" />
-    <ClCompile Include="QuadTree.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="StateGameObject.cpp" />
     <ClCompile Include="StateMachine.cpp" />

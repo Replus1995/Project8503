@@ -61,8 +61,8 @@ Win32Window::Win32Window(const std::string& title, int sizeX, int sizeY, bool fu
 	//}
 
 	windowHandle = CreateWindowEx(NULL,
-	WINDOWCLASS,    // name of the window class
-	title.c_str(),   // title of the window
+	windowClass.lpszClassName,		// name of the window class
+	title.c_str(),					// title of the window
 	fullScreen ? WS_POPUP|WS_VISIBLE : WS_OVERLAPPEDWINDOW|WS_POPUP|WS_VISIBLE|WS_SYSMENU|WS_MAXIMIZEBOX|WS_MINIMIZEBOX,    // window style
 						(int)position.x,	// x-position of the window
                         (int)position.y,	// y-position of the window
@@ -218,7 +218,7 @@ void Win32Window::CheckMessages(MSG &msg)	{
 			forceQuit = true;
 		}break;
 		case (WM_INPUT): {
-			UINT dwSize;
+			UINT dwSize = 0;
 			GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, NULL, &dwSize,sizeof(RAWINPUTHEADER));
 
 			BYTE* lpb = new BYTE[dwSize];
@@ -226,13 +226,20 @@ void Win32Window::CheckMessages(MSG &msg)	{
 			GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, lpb, &dwSize,sizeof(RAWINPUTHEADER));
 			RAWINPUT* raw = (RAWINPUT*)lpb;
 
-			if (keyboard && raw->header.dwType == RIM_TYPEKEYBOARD && active) {
+			ExInputResult exInputRes = { false, false };
+			if (thisWindow->exInputFunc)
+				exInputRes = thisWindow->exInputFunc(raw);
+
+
+			if (keyboard && raw->header.dwType == RIM_TYPEKEYBOARD && active && !exInputRes.occupyKeyboard) {
 				thisWindow->winKeyboard->UpdateRAW(raw);
 			}
 
-			if (mouse && raw->header.dwType == RIM_TYPEMOUSE && active) {			
+			if (mouse && raw->header.dwType == RIM_TYPEMOUSE && active && !exInputRes.occupyMouse) {
 				thisWindow->winMouse->UpdateRAW(raw);
 			}
+
+			
 
 			delete lpb;
 		}
@@ -247,8 +254,12 @@ void Win32Window::CheckMessages(MSG &msg)	{
 LRESULT CALLBACK Win32Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)	{
 	Win32Window* thisWindow = (Win32Window*)window;
 
-	MSG msg = { hWnd,message,wParam,lParam, 0, 0 };
-	if (thisWindow->exMsgFunc) thisWindow->exMsgFunc(&msg);
+	/*MSG msg = { hWnd,message,wParam,lParam, 0, 0 };
+	if (thisWindow->exMsgFunc)
+	{
+		if (thisWindow->exMsgFunc(&msg))
+			return true;
+	}*/
 
 	bool applyResize = false;
 

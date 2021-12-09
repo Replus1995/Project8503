@@ -126,6 +126,9 @@
     <ClInclude Include="BehaviourSequence.h">
       <Filter>Behaviour</Filter>
     </ClInclude>
+    <ClInclude Include="Octree.h">
+      <Filter>CollisionDetection</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameWorld.cpp">
@@ -166,9 +169,6 @@
     </ClCompile>
     <ClCompile Include="NavigationMesh.cpp">
       <Filter>Pathfinding</Filter>
-    </ClCompile>
-    <ClCompile Include="QuadTree.cpp">
-      <Filter>CollisionDetection</Filter>
     </ClCompile>
     <ClCompile Include="PositionConstraint.cpp">
       <Filter>Physics</Filter>

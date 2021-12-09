@@ -10,6 +10,8 @@
 #include "GameUI.h"
 #include "TutorialMenu.h"
 
+#include "../CSC8503Common/Debug.h"
+
 using namespace NCL;
 using namespace CSC8503;
 
@@ -74,8 +76,8 @@ TutorialGame::~TutorialGame()	{
 }
 
 void TutorialGame::UpdateGame(float dt) {
+	physics->BuildSpaceTree();
 	
-
 	UpdateKeyActions(dt);
 
 	physics->Update(dt);
@@ -643,7 +645,9 @@ bool TutorialGame::SelectObject() {
 		Ray ray = CollisionDetection::BuildRayFromMouse(*world->GetMainCamera());
 
 		RayCollision closestCollision;
-		if (world->Raycast(ray, closestCollision, true)) {
+		//if (world->Raycast(ray, closestCollision, true)) 
+		if (physics->Raycast(ray, closestCollision, true))
+		{
 			selectionObject = (GameObject*)closestCollision.node;
 			selectionObject->GetRenderObject()->SetColour(Vector4(0, 1, 0, 1));
 			return true;
