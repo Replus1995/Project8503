@@ -11,7 +11,7 @@ void PauseMenu::Draw()
     ImGui::SetNextWindowPos(ImVec2(mainVp->WorkPos.x, mainVp->WorkPos.y), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(mainVp->Size.x, mainVp->Size.y), ImGuiCond_Always);
     
-    if (!ImGui::Begin("Pause Background", NULL, ImGuiWindowFlags_NoDecoration))
+    if (!ImGui::Begin("Pause Background", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings))
     {
         ImGui::End();
         return;
@@ -21,7 +21,7 @@ void PauseMenu::Draw()
     ImGui::SetNextWindowPos(ImVec2(mainVp->GetCenter().x - 150, mainVp->GetCenter().y - 100), ImGuiCond_Always);
     //ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_Always);
    
-    ImGui::BeginChild("Pause Menu", ImVec2(300, 230), true);
+    ImGui::BeginChild("Pause Menu", ImVec2(300, 230), true, ImGuiWindowFlags_NoSavedSettings);
 
     ImGui::SetWindowFontScale(1.2);
     float contentWidth = ImGui::GetWindowContentRegionWidth();
