@@ -111,7 +111,10 @@ void GameTechRenderer::RenderFrame() {
 	RenderCamera();
 	glDisable(GL_CULL_FACE); //Todo - text indices are going the wrong way...
 
-	if (gameUI) gameUI->DrawUI();
+	if (gameUI)
+	{
+		gameUI->DrawUI();
+	}
 }
 
 void GameTechRenderer::BuildObjectList() {

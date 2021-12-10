@@ -22,7 +22,7 @@ PhysicsSystem::PhysicsSystem(GameWorld& g) : gameWorld(g)	{
 	applyGravity	= false;
 	useBroadPhase	= true;	
 	dTOffset		= 0.0f;
-	globalDamping	= 0.8f;
+	globalDamping	= 0.5f;
 	SetGravity(Vector3(0.0f, -9.8f, 0.0f));
 }
 
@@ -359,7 +359,7 @@ Vector3 PhysicsSystem::GetImpulseFriction(PhysicsObject* physObj, const Vector3&
 	tangent.Normalise();
 
 	float mass = 1 / physObj->GetInverseMass();
-	float staticJ = (m + 0.05) * j;
+	float staticJ = (m + 0.001f) * j;
 	float dynamicJ = m * j;
 	Vector3 frictionForce;
 	if (Vector3::Dot(v, tangent) == 0 && Vector3::Dot(v * mass, tangent) < staticJ)
@@ -492,8 +492,8 @@ the world, looking for collisions.
 void PhysicsSystem::IntegrateVelocity(float dt) {
 	GameObjectIterator first, last;
 	gameWorld.GetObjectIterators(first, last);
-	float frameLinearDamping = 1.0f - ((1.0f - globalDamping) * dt);
-	float frameAngularDamping = 1.0f - ((1.0f - globalDamping) * dt);
+	float frameLinearDamping = 1.0f - (globalDamping * dt);
+	float frameAngularDamping = 1.0f - (globalDamping * dt);
 	for (auto i = first; i != last; i++)
 	{
 		PhysicsObject* object = (*i)->GetPhysicsObject();

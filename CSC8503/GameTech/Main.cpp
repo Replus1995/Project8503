@@ -12,6 +12,8 @@
 
 #include "DebugAI.h"
 
+#include "PauseMenu.h"
+
 //#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" ) 
 
 using namespace NCL;
@@ -56,12 +58,12 @@ int main() {
 	w->LockMouseToWindow(true);
 
 	TutorialGame* g = new TutorialGame();
-	GameUI* ui = new GameUI();
-	g->SetUI(ui);
+	
 	//ui->PushMenu(GameMenuPtr(new GameMenuDemo()));
+	//ui->PushMenu(GameMenuPtr(new PauseMenu()));
 
 	w->GetTimer()->GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
-	while (w->UpdateWindow() && !Window::GetKeyboard()->KeyDown(KeyboardKeys::ESCAPE)) {
+	while (w->UpdateWindow() && !g->ShouldQuit()) {
 		float dt = w->GetTimer()->GetTimeDeltaSeconds();
 		if (dt > 0.1f) {
 			std::cout << "Skipping large time delta" << std::endl;
@@ -73,13 +75,10 @@ int main() {
 		}*/
 
 		//w->SetTitle("Gametech frame time:" + std::to_string(1000.0f * dt));
-		ui->UpdateUI();
 		g->UpdateGame(dt);
-
+		g->UpdateRender(dt);
 		//DebugAI::TestAndDisplayPathFinding(); //Test navigation
 	}
-
-	delete ui;
 	delete g;
 	Window::DestroyGameWindow();
 }

@@ -10,16 +10,15 @@ public:
 	GameUI();
 	~GameUI();
 
-	void PushMenu(const GameMenuPtr& inMenu);
+	void PushMenu(const GameMenuPtr& menu);
 	GameMenuPtr PopMenu();
+	void RemoveMenu(const GameMenuPtr& menu);
 	void ClearMenus();
 
 	void UpdateUI() const;
 	void DrawUI() const;
 
-	static GameUI* GetInstance();
 private:
 	bool IsValid = false;
 	std::vector<GameMenuPtr> menus;
-	static GameUI* GamesUI_Instance;
 };

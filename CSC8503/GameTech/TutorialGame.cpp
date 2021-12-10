@@ -9,13 +9,14 @@
 #include "BallGameMode.h"
 #include "GameUI.h"
 #include "TutorialMenu.h"
+#include "PauseState.h"
 
 #include "../CSC8503Common/Debug.h"
 
 using namespace NCL;
 using namespace CSC8503;
 
-TutorialGame::TutorialGame()	{
+TutorialGame::TutorialGame(){
 	world		= new GameWorld();
 	renderer	= new GameTechRenderer(*world);
 	physics		= new PhysicsSystem(*world);
@@ -23,9 +24,24 @@ TutorialGame::TutorialGame()	{
 	forceMagnitude	= 10.0f;
 	useGravity		= false;
 
+	quit = false;
+	freezed = true;
+
 	Debug::SetRenderer(renderer);
 
+	InitialiseUI();
 	InitialiseAssets();
+
+	//SetBallLevel();
+}
+
+void TutorialGame::InitialiseUI()
+{
+	gameUI = new GameUI();
+	renderer->SetUI(gameUI);
+	gameMenu.reset(new TutorialMenu(this));
+	gameUI->PushMenu(gameMenu);
+	pauseMachine = new PushdownMachine(new InGameState(this));
 }
 
 /*
@@ -54,9 +70,6 @@ void TutorialGame::InitialiseAssets() {
 	basicShader = new OGLShader("GameTechVert.glsl", "GameTechFrag.glsl");
 
 	InitCamera();
-
-	gameMode.reset(new BallGameMode(this));
-	InitWorld();
 }
 
 TutorialGame::~TutorialGame()	{
@@ -67,6 +80,9 @@ TutorialGame::~TutorialGame()	{
 	delete enemyMesh;
 	delete bonusMesh;
 
+	delete pauseMachine;
+	delete gameUI;
+
 	delete basicTex;
 	delete basicShader;
 
@@ -76,6 +92,13 @@ TutorialGame::~TutorialGame()	{
 }
 
 void TutorialGame::UpdateGame(float dt) {
+	
+	gameUI->UpdateUI();
+	quit = !pauseMachine->Update(dt);
+
+	if (freezed) 
+		return;
+
 	physics->BuildSpaceTree();
 	
 	UpdateKeyActions(dt);
@@ -101,19 +124,20 @@ void TutorialGame::UpdateGame(float dt) {
 	}
 
 	world->UpdateGameObjects(dt);
-
 	world->UpdateWorld(dt);
-	renderer->Update(dt);
+}
 
+void TutorialGame::UpdateRender(float dt)
+{
 	Debug::FlushRenderables(dt);
+	renderer->Update(dt);
 	renderer->Render();
 }
 
-void TutorialGame::SetUI(GameUI* ui)
+void TutorialGame::SetBallLevel()
 {
-	renderer->SetUI(ui);
-	gameMenu.reset(new TutorialMenu(this));
-	ui->PushMenu(gameMenu);
+	gameMode.reset(new BallGameMode(this));
+	InitWorld();
 }
 
 void TutorialGame::UpdateKeyActions(float dt) {

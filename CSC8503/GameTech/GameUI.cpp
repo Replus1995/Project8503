@@ -7,7 +7,6 @@
 
 using namespace NCL;
 
-GameUI* GameUI::GamesUI_Instance = nullptr;
 Win32Code::ExInputResult ImguiProcessInput(void* data);
 
 GameUI::GameUI()
@@ -22,14 +21,16 @@ GameUI::GameUI()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.WantCaptureMouse = true;
     //io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 16);
+    //io.Fonts->AddFontDefault();
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
+    //ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(win32_w->GetHandle());
@@ -39,19 +40,16 @@ GameUI::GameUI()
 
 GameUI::~GameUI()
 {
-    if (IsValid)
-    {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplWin32_Shutdown();
-        ImGui::DestroyContext();
-    }
-    
-    if (GamesUI_Instance == this) GamesUI_Instance = nullptr;
+    if (!IsValid) return;
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 }
 
-void GameUI::PushMenu(const GameMenuPtr& inMenu)
+void GameUI::PushMenu(const GameMenuPtr& menu)
 {
-    menus.push_back(inMenu);
+    menus.push_back(menu);
 }
 
 GameMenuPtr GameUI::PopMenu()
@@ -59,6 +57,13 @@ GameMenuPtr GameUI::PopMenu()
     GameMenuPtr menuToPop = menus.back();
     menus.pop_back();
     return menuToPop;
+}
+
+void GameUI::RemoveMenu(const GameMenuPtr& menu)
+{
+    auto iter = std::find(menus.begin(), menus.end(), menu);
+    if (iter != menus.end())
+        menus.erase(iter);
 }
 
 void GameUI::ClearMenus()
@@ -74,7 +79,7 @@ void GameUI::UpdateUI() const
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    for (const auto& menu : menus)
+    for (auto& menu : menus)
     {
         menu->Draw();
     }
@@ -89,10 +94,6 @@ void GameUI::DrawUI() const
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-GameUI* GameUI::GetInstance()
-{
-    return GamesUI_Instance;
-}
 
 Win32Code::ExInputResult ImguiProcessInput(void* data)
 {

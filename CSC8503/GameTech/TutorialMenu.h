@@ -12,7 +12,7 @@ namespace NCL {
 			{};
 			virtual ~TutorialMenu() {};
 
-			virtual void Draw() const override;
+			virtual void Draw() override;
 		protected:
 			TutorialGame* game;
 		};

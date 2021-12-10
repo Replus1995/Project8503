@@ -8,7 +8,7 @@ public:
 	GameMenu() {};
 	virtual ~GameMenu() {};
 
-	virtual void Draw() const = 0;
+	virtual void Draw() = 0;
 };
 
 typedef std::shared_ptr<GameMenu> GameMenuPtr;
@@ -16,7 +16,7 @@ typedef std::shared_ptr<GameMenu> GameMenuPtr;
 
 class GameMenuDemo : public GameMenu
 {
-	virtual void Draw() const override
+	virtual void Draw() override
 	{
 		bool showDemo = true;
 		ImGui::ShowDemoWindow(&showDemo);

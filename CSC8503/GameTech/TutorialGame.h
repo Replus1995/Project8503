@@ -3,6 +3,7 @@
 #include "GameTechRenderer.h"
 #include "../CSC8503Common/PhysicsSystem.h"
 #include "../CSC8503Common/StateGameObject.h"
+#include "../CSC8503Common/PushdownMachine.h"
 
 class GameUI;
 
@@ -14,18 +15,24 @@ namespace NCL {
 			~TutorialGame();
 
 			virtual void UpdateGame(float dt);
-			void UpdateKeyActions(float dt);
+			virtual void UpdateRender(float dt);
 
-			void SetUI(GameUI* ui);
+			GameUI* GetUI() const { return gameUI; };
+			bool IsFreezed() const { return freezed; };
+			void SetFreeze(bool freeze) { freezed = freeze; };
+			bool ShouldQuit() const { return quit; };
+
+			void SetBallLevel();
+			void SetMazeLevel() {};
 
 		protected:
-			void InitialiseAssets();
+			virtual void UpdateKeyActions(float dt);
 
+			void InitialiseUI();
+			void InitialiseAssets();
 			void InitCamera();
-			
 
 			void InitWorld();
-
 			void InitGameExamples();
 
 			void InitSphereGridWorld(int numRows, int numCols, float rowSpacing, float colSpacing, float radius);
@@ -93,6 +100,12 @@ namespace NCL {
 
 			friend class TutorialMenu;
 			std::shared_ptr<TutorialMenu> gameMenu = nullptr;
+
+			GameUI* gameUI;
+
+			bool quit;
+			bool freezed;
+			PushdownMachine* pauseMachine;
 		};
 	}
 }

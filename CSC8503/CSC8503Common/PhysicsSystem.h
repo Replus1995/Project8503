@@ -19,9 +19,8 @@ namespace NCL {
 				applyGravity = state;
 			}
 
-			void SetGlobalDamping(float d) {
-				globalDamping = d;
-			}
+			float GetGlobalDamping() const { return globalDamping; };
+			void SetGlobalDamping(float d) { globalDamping = d; };
 
 			void SetGravity(const Vector3& g);
 

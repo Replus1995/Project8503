@@ -155,6 +155,8 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="PauseMenu.cpp" />
+    <ClCompile Include="PauseState.cpp" />
     <ClCompile Include="TutorialGame.cpp" />
     <ClCompile Include="TutorialMenu.cpp" />
   </ItemGroup>
@@ -172,6 +174,7 @@
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="PauseMenu.h" />
+    <ClInclude Include="PauseState.h" />
     <ClInclude Include="TestPushdown.h" />
     <ClInclude Include="TutorialGame.h" />
     <ClInclude Include="TutorialMenu.h" />
