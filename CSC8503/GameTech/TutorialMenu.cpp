@@ -31,7 +31,7 @@ void TutorialMenu::Draw()
         }*/
         if (ImGui::Checkbox("Use Gravity", &(game->useGravity)))
             game->physics->UseGravity(game->useGravity);
-        ImGui::SliderFloat("Push Force", &(game->forceMagnitude), 10.0f, 500.0f);
+        ImGui::SliderFloat("Push Force", &(game->forceMagnitude), 10.0f, 50000.0f);
         float gDamping = game->physics->GetGlobalDamping();
         if (ImGui::SliderFloat("Global Damping", &gDamping, 0.0f, 1.0f))
             game->physics->SetGlobalDamping(gDamping);

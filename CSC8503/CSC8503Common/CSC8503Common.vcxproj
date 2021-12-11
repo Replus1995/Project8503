@@ -139,6 +139,8 @@
     <ClInclude Include="BehaviourSelector.h" />
     <ClInclude Include="BehaviourSequence.h" />
     <ClInclude Include="CapsuleVolume.h" />
+    <ClInclude Include="SliderConstraint.h" />
+    <ClInclude Include="HingeConstraint.h" />
     <ClInclude Include="NavigationGrid.h" />
     <ClInclude Include="NavigationMap.h" />
     <ClInclude Include="NavigationMesh.h" />
@@ -169,8 +171,10 @@
   <ItemGroup>
     <ClCompile Include="CollisionDetection.cpp" />
     <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="SliderConstraint.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameWorld.cpp" />
+    <ClCompile Include="HingeConstraint.cpp" />
     <ClCompile Include="NavigationGrid.cpp" />
     <ClCompile Include="NavigationMesh.cpp" />
     <ClCompile Include="PhysicsObject.cpp" />

@@ -13,6 +13,7 @@ namespace NCL {
 			PhysCh_Static = 1,
 			PhysCh_Dynamic = 1 << 1,
 			PhysCh_RayCast = 1 << 2,
+			PhysCh_AirWall = 1 << 3,
 		};
 
 

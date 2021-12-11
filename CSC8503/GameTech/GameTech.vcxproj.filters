@@ -25,6 +25,9 @@
     <Filter Include="imgui\backends">
       <UniqueIdentifier>{c027d72e-4058-4d05-ab89-a57316fc8616}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameObject">
+      <UniqueIdentifier>{ad4981b6-a3a3-45b1-b937-442648016848}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -127,6 +130,12 @@
     </ClInclude>
     <ClInclude Include="PauseState.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShootableObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoRotateObject.h">
+      <Filter>GameObject</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -159,17 +159,32 @@ namespace NCL {
 
 				if (hasChild)
 				{
+					bool anyIntersect = false;
 					for (int i = 0; i < 8; i++)
 					{
-						if (children[i].RayIntersect(ray, func)) return true;
+						anyIntersect |= children[i].RayIntersect(ray, func);
 					}
-					//return false; //should always has a child can intersect;
+					return anyIntersect;
 				}
 				else
 				{
 					func(contents);
 				}
 				return true;
+			}
+
+			void Print(int depth)
+			{
+				printf("Pos: (%f,%f,%f), Size: (%f,%f,%f)\n", position.x, position.y, position.z, size.x, size.y, size.z);
+				if (children)
+				{
+					printf("{\n");
+					for (int i = 0; i < 8; i++)
+					{
+						children[i].Print(depth + 1);
+					}
+					printf("}\n");
+				}
 			}
 
 		protected:
@@ -216,6 +231,11 @@ namespace NCL {
 			{
 				return root.RayIntersect(ray, func);
 			};
+
+			void PrintTree()
+			{
+				root.Print(0);
+			}
 
 		protected:
 			OcTreeNode<T> root;

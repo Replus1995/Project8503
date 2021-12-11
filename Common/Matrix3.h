@@ -91,6 +91,20 @@ namespace NCL {
 				return out;
 			}
 
+			inline Matrix3 operator+(const Matrix3& a) const {
+				Matrix3 out;
+				//Students! You should be able to think up a really easy way of speeding this up...
+				for (unsigned int r = 0; r < 3; ++r) {
+					for (unsigned int c = 0; c < 3; ++c) {
+						out.array[c + (r * 3)] = 0.0f;
+						for (unsigned int i = 0; i < 3; ++i) {
+							out.array[c + (r * 3)] += this->array[c + (i * 3)] + a.array[(r * 3) + i];
+						}
+					}
+				}
+				return out;
+			}
+
 			//Creates a rotation matrix that rotates by 'degrees' around the 'axis'
 			//Analogous to glRotatef
 			static Matrix3 Rotation(float degrees, const Vector3 &axis);

@@ -129,6 +129,12 @@
     <ClInclude Include="Octree.h">
       <Filter>CollisionDetection</Filter>
     </ClInclude>
+    <ClInclude Include="HingeConstraint.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderConstraint.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameWorld.cpp">
@@ -175,6 +181,12 @@
     </ClCompile>
     <ClCompile Include="StateGameObject.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HingeConstraint.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderConstraint.cpp">
+      <Filter>Physics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

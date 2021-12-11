@@ -22,7 +22,7 @@ PhysicsSystem::PhysicsSystem(GameWorld& g) : gameWorld(g)	{
 	applyGravity	= false;
 	useBroadPhase	= true;	
 	dTOffset		= 0.0f;
-	globalDamping	= 0.5f;
+	globalDamping	= 0.4f;
 	SetGravity(Vector3(0.0f, -9.8f, 0.0f));
 }
 
@@ -50,6 +50,8 @@ void PhysicsSystem::BuildSpaceTree()
 		Vector3 pos = (*i)->GetTransform().GetPosition();
 		spaceOctree->Insert(*i, pos, halfSizes);
 	}
+	//spaceOctree->PrintTree();
+	return;
 }
 
 bool PhysicsSystem::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject) const
@@ -62,6 +64,8 @@ bool PhysicsSystem::Raycast(Ray& r, RayCollision& closestCollision, bool closest
 		{
 			for (auto i = data.begin(); i != data.end(); i++)
 			{
+				if (std::find(ObjectsToTest.begin(), ObjectsToTest.end(), (*i).object) != ObjectsToTest.end())
+					continue;
 				ObjectsToTest.push_back((*i).object);
 			}
 		});

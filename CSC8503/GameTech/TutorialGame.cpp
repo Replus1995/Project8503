@@ -4,7 +4,10 @@
 #include "../../Plugins/OpenGLRendering/OGLShader.h"
 #include "../../Plugins/OpenGLRendering/OGLTexture.h"
 #include "../../Common/TextureLoader.h"
+
 #include "../CSC8503Common/PositionConstraint.h"
+#include "../CSC8503Common/SliderConstraint.h"
+#include "../CSC8503Common/HingeConstraint.h"
 
 #include "BallGameMode.h"
 #include "GameUI.h"
@@ -21,13 +24,14 @@ TutorialGame::TutorialGame(){
 	renderer	= new GameTechRenderer(*world);
 	physics		= new PhysicsSystem(*world);
 
-	forceMagnitude	= 10.0f;
-	useGravity		= false;
+	forceMagnitude	= 100.0f;
+	useGravity		= true;
 
 	quit = false;
 	freezed = true;
 
 	Debug::SetRenderer(renderer);
+	physics->UseGravity(useGravity);
 
 	InitialiseUI();
 	InitialiseAssets();
@@ -102,6 +106,7 @@ void TutorialGame::UpdateGame(float dt) {
 	physics->BuildSpaceTree();
 	
 	UpdateKeyActions(dt);
+	if (gameMode) gameMode->Update(dt);
 
 	physics->Update(dt);
 
@@ -180,6 +185,8 @@ void TutorialGame::UpdateKeyActions(float dt) {
 
 	SelectObject();
 	MoveSelectedObject();
+
+	
 }
 
 void TutorialGame::LockedObjectMovement() {
@@ -268,8 +275,11 @@ void TutorialGame::InitCamera() {
 void TutorialGame::InitWorld() {
 	world->ClearAndErase();
 	physics->Clear();
+	selectionObject = nullptr;
 
 	gameMode->SetupScene();
+
+	//SliderContraintTest();
 
 	//InitGameExamples();
 	//InitDefaultFloor();
@@ -297,6 +307,17 @@ void TutorialGame::BridgeConstraintTest() {
 	PositionConstraint* constraint = new PositionConstraint(previous, end, maxDistance);
 	world->AddConstraint(constraint);
 
+}
+
+void TutorialGame::SliderContraintTest()
+{
+	GameObject* obj_a = AddCubeToWorld(Vector3(50, 50, 50), Vector3(1, 1, 1), 0, "SpinTest_A");
+	GameObject* obj_b = AddCubeToWorld(Vector3(60, 50, 50), Vector3(1, 1, 1), 5, "SpinTest_B");
+	obj_b->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+
+	SliderConstraint* constraint = new SliderConstraint(obj_a, obj_b, Vector3(1,0,0), 5, 15);
+	//HingeConstraint* constraint = new HingeConstraint(obj_a, obj_b, 1);
+	world->AddConstraint(constraint);
 }
 
 /*
@@ -346,7 +367,6 @@ GameObject* TutorialGame::AddSphereToWorld(const Vector3& position, float radius
 
 	sphere->SetRenderObject(new RenderObject(&sphere->GetTransform(), sphereMesh, basicTex, basicShader));
 	sphere->SetPhysicsObject(new PhysicsObject(&sphere->GetTransform(), sphere->GetBoundingVolume()));
-
 	sphere->GetPhysicsObject()->SetInverseMass(inverseMass);
 	sphere->GetPhysicsObject()->InitSphereInertia();
 
@@ -390,7 +410,6 @@ GameObject* TutorialGame::AddCubeToWorld(const Vector3& position, Vector3 dimens
 
 	cube->SetRenderObject(new RenderObject(&cube->GetTransform(), cubeMesh, basicTex, basicShader));
 	cube->SetPhysicsObject(new PhysicsObject(&cube->GetTransform(), cube->GetBoundingVolume()));
-
 	cube->GetPhysicsObject()->SetInverseMass(inverseMass);
 	cube->GetPhysicsObject()->InitCubeInertia();
 
@@ -589,7 +608,7 @@ GameObject* TutorialGame::AddFloorToWorld(const Vector3& position, Vector3 dimen
 GameObject* TutorialGame::AddWallToWorld(const Vector3& position, Vector3 dimensions, Vector4 Colour, const std::string& name)
 {
 	GameObject* wall = new GameObject(name);
-	AABBVolume* volume = new AABBVolume(dimensions);
+	OBBVolume* volume = new OBBVolume(dimensions);
 	wall->SetBoundingVolume((CollisionVolume*)volume);
 	wall->GetTransform()
 		.SetPosition(position)
@@ -603,6 +622,8 @@ GameObject* TutorialGame::AddWallToWorld(const Vector3& position, Vector3 dimens
 	wall->GetPhysicsObject()->SetInverseMass(0);
 	wall->GetPhysicsObject()->InitCubeInertia();
 	wall->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+	wall->GetPhysicsObject()->SetElasticity(0.8);
+	wall->GetPhysicsObject()->SetFriction(0.1);
 
 	world->AddGameObject(wall);
 
@@ -622,7 +643,9 @@ GameObject* TutorialGame::AddAirWallToWorld(const Vector3& position, Vector3 dim
 
 	wall->GetPhysicsObject()->SetInverseMass(0);
 	wall->GetPhysicsObject()->InitCubeInertia();
-	wall->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+	wall->GetPhysicsObject()->SetPhysicsChannel(PhysCh_Static | PhysCh_AirWall);
+	wall->GetPhysicsObject()->SetElasticity(1);
+	wall->GetPhysicsObject()->SetFriction(0);
 
 	world->AddGameObject(wall);
 
