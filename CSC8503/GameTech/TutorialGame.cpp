@@ -69,6 +69,7 @@ void TutorialGame::InitialiseAssets() {
 	loadFunc("security.msh"	 , &enemyMesh);
 	loadFunc("coin.msh"		 , &bonusMesh);
 	loadFunc("capsule.msh"	 , &capsuleMesh);
+	loadFunc("apple.msh"	 , &appleMesh);
 
 	basicTex	= (OGLTexture*)TextureLoader::LoadAPITexture("checkerboard.png");
 	basicShader = new OGLShader("GameTechVert.glsl", "GameTechFrag.glsl");
@@ -77,12 +78,17 @@ void TutorialGame::InitialiseAssets() {
 }
 
 TutorialGame::~TutorialGame()	{
+	freezed = true;
+	gameMode.reset();
+
 	delete cubeMesh;
 	delete sphereMesh;
 	delete charMeshA;
 	delete charMeshB;
 	delete enemyMesh;
 	delete bonusMesh;
+	delete capsuleMesh;
+	delete appleMesh;
 
 	delete pauseMachine;
 	delete gameUI;
@@ -142,6 +148,12 @@ void TutorialGame::UpdateRender(float dt)
 void TutorialGame::SetBallLevel()
 {
 	gameMode.reset(new BallGameMode(this));
+	InitWorld();
+}
+
+void TutorialGame::SetMazeLevel()
+{
+	gameMode.reset();
 	InitWorld();
 }
 
@@ -277,7 +289,7 @@ void TutorialGame::InitWorld() {
 	physics->Clear();
 	selectionObject = nullptr;
 
-	gameMode->SetupScene();
+	if(gameMode) gameMode->SetupScene();
 
 	//SliderContraintTest();
 

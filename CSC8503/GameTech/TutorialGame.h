@@ -23,7 +23,7 @@ namespace NCL {
 			bool ShouldQuit() const { return quit; };
 
 			void SetBallLevel();
-			void SetMazeLevel() {};
+			void SetMazeLevel();
 
 		protected:
 			virtual void UpdateKeyActions(float dt);
@@ -87,6 +87,7 @@ namespace NCL {
 			OGLMesh*	charMeshB	= nullptr;
 			OGLMesh*	enemyMesh	= nullptr;
 			OGLMesh*	bonusMesh	= nullptr;
+			OGLMesh*	appleMesh = nullptr;
 
 			//Coursework Additional functionality	
 			GameObject* lockedObject	= nullptr;

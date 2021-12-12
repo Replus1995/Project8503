@@ -78,6 +78,9 @@
     <ClCompile Include="PauseState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BallLevelMenu.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameTechRenderer.h">
@@ -136,6 +139,21 @@
     </ClInclude>
     <ClInclude Include="AutoRotateObject.h">
       <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MainBallObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckPointObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="LineMoveObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="BallLevelMenu.h">
+      <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

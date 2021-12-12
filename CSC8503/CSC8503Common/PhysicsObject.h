@@ -14,6 +14,8 @@ namespace NCL {
 			PhysCh_Dynamic = 1 << 1,
 			PhysCh_RayCast = 1 << 2,
 			PhysCh_AirWall = 1 << 3,
+			PhysCh_EventOnly = 1 << 4,
+			PhysCh_NoForce = 1 << 5,
 		};
 
 

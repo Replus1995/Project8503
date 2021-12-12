@@ -9,7 +9,7 @@ void TutorialMenu::Draw()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x, main_viewport->WorkPos.y), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(360, 400), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(360, 240), ImGuiCond_Always);
 
     if (!ImGui::Begin("Tutorial Menu", NULL, window_flags))
     {

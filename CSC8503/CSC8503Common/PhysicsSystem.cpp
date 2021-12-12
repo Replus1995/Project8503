@@ -42,11 +42,9 @@ void PhysicsSystem::BuildSpaceTree()
 	gameWorld.GetObjectIterators(first, last);
 	for (auto i = first; i != last; i++)
 	{
+		if (!(*i)->IsActive()) continue;
 		Vector3 halfSizes;
-		if (!(*i)->GetBroadphaseAABB(halfSizes))
-		{
-			continue;
-		}
+		if (!(*i)->GetBroadphaseAABB(halfSizes)) continue;
 		Vector3 pos = (*i)->GetTransform().GetPosition();
 		spaceOctree->Insert(*i, pos, halfSizes);
 	}
@@ -443,7 +441,9 @@ void PhysicsSystem::NarrowPhase() {
 		if (CollisionDetection::ObjectIntersection(info.a, info.b, info))
 		{
 			info.framesLeft = numCollisionFrames;
-			ImpulseResolveCollision(*info.a, *info.b, info.point);
+			bool eventOnly = info.a->GetPhysicsObject()->HasChannel(PhysCh_EventOnly) | info.b->GetPhysicsObject()->HasChannel(PhysCh_EventOnly);
+			if(!eventOnly)
+				ImpulseResolveCollision(*info.a, *info.b, info.point);
 			allCollisions.insert(info);
 		}
 	}
@@ -501,10 +501,9 @@ void PhysicsSystem::IntegrateVelocity(float dt) {
 	for (auto i = first; i != last; i++)
 	{
 		PhysicsObject* object = (*i)->GetPhysicsObject();
-		if (object == nullptr)
-		{
-			continue;
-		}
+		if (object == nullptr) continue;
+		if (object->HasChannel(PhysCh_NoForce)) continue;
+
 		Transform& transform = (*i)->GetTransform();
 
 		Vector3 position = transform.GetPosition();

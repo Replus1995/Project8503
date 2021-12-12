@@ -2,12 +2,23 @@
 #include "../CSC8503Common/SliderConstraint.h"
 #include "ShootableObject.h"
 #include "AutoRotateObject.h"
+#include "LineMoveObject.h"
+#include "TriggerObject.h"
+#include "GameUI.h"
 
 using namespace NCL;
 using namespace CSC8503;
 
+BallGameMode::BallGameMode(TutorialGame* game)
+	: GameMode(game)
+{
+	menu.reset(new BallLevelMenu());
+	gameInst->gameUI->PushMenu(menu);
+}
+
 BallGameMode::~BallGameMode()
 {
+	gameInst->gameUI->RemoveMenu(menu);
 }
 
 void BallGameMode::SetupScene()
@@ -24,18 +35,18 @@ void BallGameMode::SetupScene()
 	floor_ice->GetPhysicsObject()->SetElasticity(0.2);
 
 	GameObject* floor_sand = gameInst->AddFloorToWorld(Vector3(-8, -2, 0), Vector3(22, 2, 56), Vector4(.9, .7, .3, 0), "Floor_Sand");
-	floor_ice->GetPhysicsObject()->SetFriction(10);
-	floor_ice->GetPhysicsObject()->SetElasticity(0);
+	floor_sand->GetPhysicsObject()->SetFriction(1.0f);
+	floor_sand->GetPhysicsObject()->SetElasticity(0);
 	GameObject* floor_02 = gameInst->AddFloorToWorld(Vector3(-8, -2, 78), Vector3(22, 2, 22), Vector4(1, 1, 1, 0), "Floor_02");
-	floor_01->GetPhysicsObject()->SetFriction(0.6);
-	floor_01->GetPhysicsObject()->SetElasticity(0.6);
+	floor_02->GetPhysicsObject()->SetFriction(0.6);
+	floor_02->GetPhysicsObject()->SetElasticity(0.6);
 	GameObject* floor_03 = gameInst->AddFloorToWorld(Vector3(-8, -2, -78), Vector3(22, 2, 22), Vector4(1, 1, 1, 0), "Floor_03");
-	floor_01->GetPhysicsObject()->SetFriction(0.6);
-	floor_01->GetPhysicsObject()->SetElasticity(0.6);
+	floor_03->GetPhysicsObject()->SetFriction(0.6);
+	floor_03->GetPhysicsObject()->SetElasticity(0.6);
 
 	GameObject* floor_04 = gameInst->AddFloorToWorld(Vector3(-65, -2, 0), Vector3(35, 2, 100), Vector4(1, 1, 1, 0), "Floor_04");
-	floor_01->GetPhysicsObject()->SetFriction(0.6);
-	floor_01->GetPhysicsObject()->SetElasticity(0.6);
+	floor_04->GetPhysicsObject()->SetFriction(0.6);
+	floor_04->GetPhysicsObject()->SetElasticity(0.6);
 
 
 
@@ -53,50 +64,70 @@ void BallGameMode::SetupScene()
 	GameObject* wall_angle_01 = gameInst->AddWallToWorld(Vector3(75, 10, -50), Vector3(1, 10, 35), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_Angle_01");
 	wall_angle_01->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(0, 45, 0));
 	wall_angle_01->GetPhysicsObject()->SetElasticity(2);
-	GameObject* wall_02 = gameInst->AddWallToWorld(Vector3(14, 10, -20), Vector3(1, 10, 80), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_02");
 
+	GameObject* wall_02 = gameInst->AddWallToWorld(Vector3(14, 10, -22), Vector3(1, 10, 78), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_02");
 	GameObject* wall_angle_02 = gameInst->AddWallToWorld(Vector3(36, 10, 70), Vector3(1, 10, 31), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_Angle_02");
 	wall_angle_02->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(0, -50, 0));
 	wall_angle_02->GetPhysicsObject()->SetElasticity(2);
 
+	GameObject* wall_03 = gameInst->AddWallToWorld(Vector3(-30, 10, 20), Vector3(1, 10, 80), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_03");
 	GameObject* wall_up_01 = gameInst->AddWallToWorld(Vector3(-8, 1, 50), Vector3(22, 1, 12), Vector4(0.3f, 0.3f, 0.3f, 1), "Wall_Up_01");
 	wall_up_01->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(10, 0, 0));
-	wall_up_01->GetPhysicsObject()->SetElasticity(2);
+	wall_up_01->GetPhysicsObject()->SetElasticity(0.6);
+	wall_up_01->GetPhysicsObject()->SetFriction(0.3);
 
-	GameObject* wall_03 = gameInst->AddWallToWorld(Vector3(-30, 10, 20), Vector3(1, 10, 80), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_03");
+	GameObject* wall_up_02 = gameInst->AddWallToWorld(Vector3(-8, 1, -45), Vector3(22, 1, 12), Vector4(0.3f, 0.3f, 0.3f, 1), "Wall_Up_02");
+	wall_up_02->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(-10, 0, 0));
+	wall_up_02->GetPhysicsObject()->SetElasticity(0.6);
+	wall_up_02->GetPhysicsObject()->SetFriction(0.3);
+
+	GameObject* wall_angle_03 = gameInst->AddWallToWorld(Vector3(-8, 10, -70), Vector3(1, 10, 29), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_Angle_03");
+	wall_angle_03->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(0, 50, 0));
+	wall_angle_03->GetPhysicsObject()->SetElasticity(2);
+
+	GameObject* wall_down_01 = gameInst->AddWallToWorld(Vector3(-85, 10, 20), Vector3(16, 1, 30), Vector4(0.3f, 0.3f, 0.3f, 1), "Wall_Down_01");
+	wall_down_01->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(0, 0, -30));
+	wall_down_01->GetPhysicsObject()->SetFriction(0.8);
+	GameObject* wall_down_02 = gameInst->AddWallToWorld(Vector3(-45, 10, 20), Vector3(16, 1, 30), Vector4(0.3f, 0.3f, 0.3f, 1), "Wall_Down_02");
+	wall_down_02->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(0, 0, 30));
+	wall_down_02->GetPhysicsObject()->SetFriction(0.8);
+	GameObject* wall_down_03 = gameInst->AddWallToWorld(Vector3(-65, 2, 20), Vector3(16, 1, 30), Vector4(0.3f, 0.3f, 0.3f, 1), "Wall_Down_03");
+	wall_down_03->GetPhysicsObject()->SetFriction(0.8);
+
+	GameObject* wall_up_03 = gameInst->AddWallToWorld(Vector3(-65, 2.5, -35), Vector3(34, 1, 20), Vector4(0.3f, 0.3f, 0.3f, 1), "Wall_Up_03");
+	wall_up_03->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(-15, 0, 0));
+	wall_up_03->GetPhysicsObject()->SetElasticity(0.6);
+	wall_up_03->GetPhysicsObject()->SetFriction(0.3);
+
 	
+	//Level2
 	AddAutoRotateCapsule(Vector3(25, 4, -20), 6, 2, 0.0f, 120.0f, "Capsule_AR_01");
-	AddAutoRotateCapsule(Vector3(45, 4, 0), 6, 2, 0.0f, -240.0f, "Capsule_AR_02");
-	AddAutoRotateCapsule(Vector3(25, 4, 20), 6, 2, 0.0f, 180.0f, "Capsule_AR_03");
+	AddAutoRotateCapsule(Vector3(45, 4, -5), 6, 2, 0.0f, -240.0f, "Capsule_AR_02");
+	AddBonusLR(Vector3(22, 4, 15), Vector3(35, 4, 15), 2.0f, "Bonus_LR_01");
+	AddBonusLR(Vector3(48, 4, 25), Vector3(35, 4, 25), 2.0f, "Bonus_LR_02");
 	
-	
-	//GameObject* up_01 = gameInst->AddWallToWorld(Vector3(32, 5, -40), Vector3(18, 1, 60), Vector4(0.3f, 0.3f, 0.3f, 1), "up_01");
-	//up_01->GetTransform().SetOrientation(Quaternion::EulerAnglesToQuaternion(15, 0, 0));
-	
-
-
-	////Add slider board
-	//GameObject* silder_0_A = gameInst->AddCubeToWorld(Vector3(80, 5, 90), Vector3(5, 5, 1), 0.0f);
-	//GameObject* silder_0_B = AddShootableCube(Vector3(80, 5, 86), Vector3(18, 5, 1), 0.5f, Vector3(0,0,-1));
-	//silder_0_B->GetPhysicsObject()->SetPhysicsChannel(PhysCh_RayCast | PhysCh_Static | PhysCh_Dynamic);
-	//silder_0_B->GetPhysicsObject()->SetElasticity(1);
-	//SliderConstraint* silder_0_con = new SliderConstraint(silder_0_A, silder_0_B, Vector3(0, 0, -1), 2, 32);
-	//gameInst->world->AddConstraint(silder_0_con);
-
 	//Add shoot board
 	AddShootBoard(Vector3(80, 10, 90), Vector3(18, 10, 1), 0.5f, Vector3(0, 0, -1), 3, 30, "ShootBoard_01");
-	AddShootBoard(Vector3(32, 10, -75), Vector3(18, 10, 1), 0.5f, Vector3(0, 0, 1), 3, 30, "ShootBoard_02");
+	AddShootBoard(Vector3(32, 10, -75), Vector3(17, 10, 1), 0.5f, Vector3(0, 0, 1), 3, 30, "ShootBoard_02");
 	AddShootBoard(Vector3(-8, 10, 90), Vector3(20, 10, 1), 0.5f, Vector3(0, 0, -1), 3, 30, "ShootBoard_03");
+	AddShootBoard(Vector3(-65, 10, -90), Vector3(34, 10, 1), 0.5f, Vector3(0, 0, 1), 3, 30, "ShootBoard_04");
 
-	mainBall = gameInst->AddSphereToWorld(Vector3(80, 5, 70), 2.0f, 10.0f, "MainBall");
-	mainBall->GetRenderObject()->SetColour(Vector4(1, 1, 0, 1));
-	mainBall->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
-	mainBall->GetPhysicsObject()->AddPhysicsChannel(PhysCh_AirWall);
-	//mainBall->GetPhysicsObject()->SetElasticity(1);
-	
+	CheckPointObject* ckPoint_01 = AddCheckPoint(Vector3(37, 10, -55), Vector3(22, 10, 15), "CheckPoint_01");
+	ckPoint_01->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 1 reached."); });
+	CheckPointObject* ckPoint_02 = AddCheckPoint(Vector3(-8, 10, 75), Vector3(21, 10, 14), "CheckPoint_02");
+	ckPoint_02->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 2 reached."); });
+	CheckPointObject* ckPoint_03 = AddCheckPoint(Vector3(-65, 10, -75), Vector3(35, 10, 14), "CheckPoint_03");
+	ckPoint_03->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 3 reached."); });
+	//AddMixedGrid(Vector3(-65, 50, 20), 8, 8, 6, 6);
 
+	TriggerObject* gridTrigger = AddTriggerVolume(Vector3(-65, 10, -30), Vector3(34, 10, 2), nullptr, "GridTrigger");
+	gridTrigger->AddTriggerCallback([&](GameObject* a) { AddMixedGrid(Vector3(-65, 50, 20), 8, 8, 6, 6); });
 
+	TriggerObject* goalTrigger = AddTriggerVolume(Vector3(-65, 10, 80), Vector3(10, 10, 10), gameInst->cubeMesh, "Goalrigger");
+	goalTrigger->GetRenderObject()->SetColour(Vector4(1., .3, .3, 1));
+	goalTrigger->AddTriggerCallback([&](GameObject* a) { menu->SetReachGoal(true); menu->SetStatusString("Goal reached."); });
 
+	mainBall = AddMainBall(Vector3(80, 5, 70), 2.0f, 10.0f, "MainBall");
 }
 
 void BallGameMode::Update(float dt)
@@ -112,6 +143,38 @@ void BallGameMode::Update(float dt)
 			}
 		}
 	}
+	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::R))
+	{
+		mainBall->RestorePosition();
+	}
+
+	menu->Update(dt);
+}
+
+MainBallObject* BallGameMode::AddMainBall(const Vector3& position, float radius, float inverseMass, const std::string& name)
+{
+	MainBallObject* ball = new MainBallObject(name);
+
+	Vector3 sphereSize = Vector3(radius, radius, radius);
+	SphereVolume* volume = new SphereVolume(radius);
+	ball->SetBoundingVolume((CollisionVolume*)volume);
+
+	ball->GetTransform()
+		.SetScale(sphereSize)
+		.SetPosition(position);
+
+	ball->SetRenderObject(new RenderObject(&ball->GetTransform(), gameInst->sphereMesh, gameInst->basicTex, gameInst->basicShader));
+	ball->GetRenderObject()->SetColour(Vector4(0.3, 1, 0.3, 1));
+	ball->SetPhysicsObject(new PhysicsObject(&ball->GetTransform(), ball->GetBoundingVolume()));
+	ball->GetPhysicsObject()->SetInverseMass(inverseMass);
+	ball->GetPhysicsObject()->InitSphereInertia();
+	ball->GetPhysicsObject()->AddPhysicsChannel(PhysCh_AirWall);
+
+	ball->SetRestorePoint(position);
+
+	gameInst->world->AddGameObject(ball);
+
+	return ball;
 }
 
 ShootableObject* BallGameMode::AddShootableCube(const Vector3& position, const Vector3& dimensions, float inverseMass, const Vector3& shootDir, const std::string& name)
@@ -175,4 +238,95 @@ GameObject* BallGameMode::AddAutoRotateCapsule(const Vector3& position, float ha
 	gameInst->world->AddGameObject(capsule);
 
 	return capsule;
+}
+
+CheckPointObject* BallGameMode::AddCheckPoint(const Vector3& position, Vector3 dimensions, const std::string& name)
+{
+	CheckPointObject* cube = new CheckPointObject(name);
+
+	AABBVolume* volume = new AABBVolume(dimensions);
+
+	cube->SetBoundingVolume((CollisionVolume*)volume);
+
+	cube->GetTransform()
+		.SetPosition(position)
+		.SetScale(dimensions * 2);
+
+	cube->SetRenderObject(nullptr);
+	//cube->SetRenderObject(new RenderObject(&cube->GetTransform(), gameInst->cubeMesh, gameInst->basicTex, gameInst->basicShader));
+	cube->SetPhysicsObject(new PhysicsObject(&cube->GetTransform(), cube->GetBoundingVolume()));
+	cube->GetPhysicsObject()->SetInverseMass(0.0f);
+	cube->GetPhysicsObject()->InitCubeInertia();
+	cube->GetPhysicsObject()->SetPhysicsChannel(PhysCh_Static | PhysCh_Dynamic | PhysCh_EventOnly);
+
+	gameInst->world->AddGameObject(cube);
+
+	return cube;
+}
+
+GameObject* BallGameMode::AddBonusLR(const Vector3& position, const Vector3& center, float scale, const std::string& name)
+{
+	LineMoveObject* bonus = new LineMoveObject(name);
+
+	SphereVolume* volume = new SphereVolume(scale);
+	bonus->SetBoundingVolume((CollisionVolume*)volume);
+	bonus->GetTransform()
+		.SetScale(Vector3(scale * .25f, scale * .25f, scale * .25f))
+		.SetPosition(position);
+
+	bonus->SetRenderObject(new RenderObject(&bonus->GetTransform(), gameInst->bonusMesh, nullptr, gameInst->basicShader));
+	bonus->SetPhysicsObject(new PhysicsObject(&bonus->GetTransform(), bonus->GetBoundingVolume()));
+	bonus->GetPhysicsObject()->SetInverseMass(0.0f);
+	bonus->GetPhysicsObject()->InitSphereInertia();
+	bonus->GetPhysicsObject()->SetFriction(0.0f);
+	bonus->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+	bonus->GetPhysicsObject()->AddPhysicsChannel(PhysCh_NoForce);
+
+	bonus->SetCenterPoint(center);
+
+	gameInst->world->AddGameObject(bonus);
+
+	return bonus;
+}
+
+void BallGameMode::AddMixedGrid(const Vector3& center, int numRows, int numCols, float rowSpacing, float colSpacing)
+{
+	float sphereRadius = 1.0f;
+	Vector3 cubeDims = Vector3(1, 1, 1);
+
+	for (int x = 0; x < numCols; ++x) {
+		for (int z = 0; z < numRows; ++z) {
+			Vector3 position = Vector3((x-numCols/2) * colSpacing, 0.0f, (z-numRows/2) * rowSpacing) + center;
+
+			if (rand() % 2) {
+				gameInst->AddCubeToWorld_OBB(position, cubeDims, 10.0f, "MixGrid_Cube_" + std::to_string(x * numRows + z));
+			}
+			else {
+				gameInst->AddSphereToWorld(position, sphereRadius, 10.0f, "MixGrid_Sphere_" + std::to_string(x * numRows + z));
+			}
+		}
+	}
+}
+
+TriggerObject* BallGameMode::AddTriggerVolume(const Vector3& position, const Vector3& dimensions, MeshGeometry* mesh, const std::string& name)
+{
+	TriggerObject* cube = new TriggerObject(name);
+
+	AABBVolume* volume = new AABBVolume(dimensions);
+
+	cube->SetBoundingVolume((CollisionVolume*)volume);
+
+	cube->GetTransform()
+		.SetPosition(position)
+		.SetScale(dimensions * 2);
+
+	mesh ? cube->SetRenderObject(new RenderObject(&cube->GetTransform(), mesh, gameInst->basicTex, gameInst->basicShader)) : cube->SetRenderObject(nullptr);
+	cube->SetPhysicsObject(new PhysicsObject(&cube->GetTransform(), cube->GetBoundingVolume()));
+	cube->GetPhysicsObject()->SetInverseMass(0.0f);
+	cube->GetPhysicsObject()->InitCubeInertia();
+	cube->GetPhysicsObject()->SetPhysicsChannel(PhysCh_Static | PhysCh_Dynamic | PhysCh_EventOnly);
+
+	gameInst->world->AddGameObject(cube);
+
+	return cube;
 }

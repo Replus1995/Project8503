@@ -58,9 +58,6 @@ int main() {
 	w->LockMouseToWindow(true);
 
 	TutorialGame* g = new TutorialGame();
-	
-	//ui->PushMenu(GameMenuPtr(new GameMenuDemo()));
-	//ui->PushMenu(GameMenuPtr(new PauseMenu()));
 
 	w->GetTimer()->GetTimeDeltaSeconds(); //Clear the timer so we don't get a larget first dt!
 	while (w->UpdateWindow() && !g->ShouldQuit()) {

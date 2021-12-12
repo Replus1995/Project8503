@@ -917,7 +917,7 @@ int CollisionDetection::CylinderSphereIntersection(const float cylinderHalfHeigh
 			Vector2 normal2D = planePos.Normalised();
 			Vector3 normal3D(normal2D.x, 0, normal2D.y);
 			Vector3 cpointCylinder = Vector3(0, spherePos.y, 0) + normal3D * cylinderRadius;
-			Vector3 cpointSphere = Vector3(0, 0, 0) - normal3D * sphereRadius;
+			Vector3 cpointSphere = spherePos - normal3D * sphereRadius;
 
 			collisionInfo.AddContactPoint(cpointCylinder, cpointSphere, normal3D, penetration);
 			return 0;
