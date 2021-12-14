@@ -81,6 +81,18 @@
     <ClCompile Include="BallLevelMenu.cpp">
       <Filter>UI</Filter>
     </ClCompile>
+    <ClCompile Include="MazeGameMode.cpp">
+      <Filter>GameMode</Filter>
+    </ClCompile>
+    <ClCompile Include="MazeMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MazeEnemyObject.cpp">
+      <Filter>GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="MazeLevelMenu.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameTechRenderer.h">
@@ -153,6 +165,24 @@
       <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="BallLevelMenu.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="MazeGameMode.h">
+      <Filter>GameMode</Filter>
+    </ClInclude>
+    <ClInclude Include="MazeMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BonusObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MazePlayerObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MazeEnemyObject.h">
+      <Filter>GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="MazeLevelMenu.h">
       <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>

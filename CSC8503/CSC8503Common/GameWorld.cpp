@@ -8,15 +8,20 @@
 using namespace NCL;
 using namespace NCL::CSC8503;
 
+GameWorld* GameWorld::instance = nullptr;
+
 GameWorld::GameWorld()	{
 	mainCamera = new Camera();
 
 	shuffleConstraints	= false;
 	shuffleObjects		= false;
 	worldIDCounter		= 0;
+
+	instance = this;
 }
 
 GameWorld::~GameWorld()	{
+	if (instance = this) instance = nullptr;
 }
 
 void GameWorld::Clear() {
@@ -70,7 +75,7 @@ void GameWorld::UpdateWorld(float dt) {
 	}
 }
 
-bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject) const {
+bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject, PhysicsChannel channel) const {
 	//The simplest raycast just goes through each object and sees if there's a collision
 	RayCollision collision;
 
@@ -79,7 +84,7 @@ bool GameWorld::Raycast(Ray& r, RayCollision& closestCollision, bool closestObje
 			continue;
 		}
 		RayCollision thisCollision;
-		if (CollisionDetection::RayIntersection(r, *i, thisCollision)) {
+		if (CollisionDetection::RayIntersection(r, *i, thisCollision, channel)) {
 				
 			if (!closestObject) {	
 				closestCollision		= collision;

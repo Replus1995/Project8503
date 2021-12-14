@@ -26,7 +26,7 @@ namespace NCL {
 
 			void BuildSpaceTree();
 
-			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject) const;
+			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject, PhysicsChannel channel = PhysCh_RayCast) const;
 
 		protected:
 			void BasicCollisionDetection();

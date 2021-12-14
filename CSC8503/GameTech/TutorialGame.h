@@ -88,6 +88,7 @@ namespace NCL {
 			OGLMesh*	enemyMesh	= nullptr;
 			OGLMesh*	bonusMesh	= nullptr;
 			OGLMesh*	appleMesh = nullptr;
+			OGLTexture* dogeTex = nullptr;
 
 			//Coursework Additional functionality	
 			GameObject* lockedObject	= nullptr;
@@ -96,10 +97,15 @@ namespace NCL {
 				lockedObject = o;
 			}
 			
+			Vector3 camInitPos = Vector3(-60,40,60);
+			Vector3 camInitRot = Vector3(0, 315, -15);
+
+
 			friend class GameMode;
 			std::unique_ptr<GameMode> gameMode = nullptr;
 			friend class BallGameMode;
 			friend class MazeGameMode;
+			friend class MazeMap;
 
 			friend class TutorialMenu;
 			std::shared_ptr<TutorialMenu> gameMenu = nullptr;

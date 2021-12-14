@@ -192,6 +192,15 @@ Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees
 	return Quaternion((float)(vector.x * result), (float)(vector.y * result), (float)(vector.z * result), (float)cos(theta / 2.0f));
 }
 
+Quaternion Quaternion::FromAxis(const Vector3& right, const Vector3& up, const Vector3& forward)
+{
+	Matrix3 rotation;
+	rotation.SetColumn(0, right);
+	rotation.SetColumn(1, up);
+	rotation.SetColumn(2, forward);
+	return Quaternion(rotation);
+}
+
 
 Vector3		Quaternion::operator *(const Vector3 &a)	const {
 	Quaternion newVec = *this * Quaternion(a.x, a.y, a.z, 0.0f) * Conjugate();

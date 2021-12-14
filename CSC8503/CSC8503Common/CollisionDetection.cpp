@@ -30,7 +30,7 @@ bool CollisionDetection::RayPlaneIntersection(const Ray&r, const Plane&p, RayCol
 	return true;
 }
 
-bool CollisionDetection::RayIntersection(const Ray& r,GameObject& object, RayCollision& collision) {
+bool CollisionDetection::RayIntersection(const Ray& r,GameObject& object, RayCollision& collision, PhysicsChannel channel) {
 	bool hasCollided = false;
 
 	const Transform& worldTransform = object.GetTransform();
@@ -41,7 +41,7 @@ bool CollisionDetection::RayIntersection(const Ray& r,GameObject& object, RayCol
 		return false;
 	}
 
-	if (!physObj->HasChannel(PhysCh_RayCast)) return false;
+	if (!physObj->HasChannel(channel)) return false;
 
 	switch (volume->type) {
 		case VolumeType::AABB:		hasCollided = RayAABBIntersection(r, worldTransform, (const AABBVolume&)*volume, collision); break;

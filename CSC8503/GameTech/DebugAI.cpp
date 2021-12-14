@@ -78,14 +78,14 @@ void DebugAI::TestPathFinding(std::vector<NCL::Maths::Vector3>& outNodes)
 	}
 }
 
-void DebugAI::DisplayPathFinding(const std::vector<NCL::Maths::Vector3>& inNodes)
+void DebugAI::DisplayPathFinding(const std::vector<NCL::Maths::Vector3>& inNodes, const NCL::Maths::Vector4& colour)
 {
 	for (size_t i = 1; i < inNodes.size(); i++)
 	{
 		const Vector3& a = inNodes[i - 1];
 		const Vector3& b = inNodes[i];
 
-		Debug::DrawLine(a, b, Vector4(0, 1, 0, 1));
+		Debug::DrawLine(a, b, colour);
 	}
 }
 
@@ -93,7 +93,7 @@ void DebugAI::TestAndDisplayPathFinding()
 {
 	std::vector<Vector3> testNodes;
 	TestPathFinding(testNodes);
-	DisplayPathFinding(testNodes);
+	DisplayPathFinding(testNodes, Vector4(0, 1, 0, 1));
 }
 
 void DebugAI::TestBehaviourTree()

@@ -23,6 +23,9 @@ BallGameMode::~BallGameMode()
 
 void BallGameMode::SetupScene()
 {
+	gameInst->camInitPos = Vector3(0, 100, 200);
+	gameInst->camInitRot = Vector3(0, 0, -30);
+
 	//Add floor
 	//GameObject* floor = gameInst->AddFloorToWorld(Vector3(0, -2, 0), Vector3(100,2,100), Vector4(1,1,1,0), "DefaultFloor");
 	//floor->GetPhysicsObject()->SetFriction(0.6);
@@ -124,7 +127,7 @@ void BallGameMode::SetupScene()
 	gridTrigger->AddTriggerCallback([&](GameObject* a) { AddMixedGrid(Vector3(-65, 50, 20), 8, 8, 6, 6); });
 
 	TriggerObject* goalTrigger = AddTriggerVolume(Vector3(-65, 10, 80), Vector3(10, 10, 10), gameInst->cubeMesh, "Goalrigger");
-	goalTrigger->GetRenderObject()->SetColour(Vector4(1., .3, .3, 1));
+	//goalTrigger->GetRenderObject()->SetColour(Vector4(1., .3, .3, 1));
 	goalTrigger->AddTriggerCallback([&](GameObject* a) { menu->SetReachGoal(true); menu->SetStatusString("Goal reached."); });
 
 	mainBall = AddMainBall(Vector3(80, 5, 70), 2.0f, 10.0f, "MainBall");
@@ -320,7 +323,7 @@ TriggerObject* BallGameMode::AddTriggerVolume(const Vector3& position, const Vec
 		.SetPosition(position)
 		.SetScale(dimensions * 2);
 
-	mesh ? cube->SetRenderObject(new RenderObject(&cube->GetTransform(), mesh, gameInst->basicTex, gameInst->basicShader)) : cube->SetRenderObject(nullptr);
+	mesh ? cube->SetRenderObject(new RenderObject(&cube->GetTransform(), mesh, gameInst->dogeTex, gameInst->basicShader)) : cube->SetRenderObject(nullptr);
 	cube->SetPhysicsObject(new PhysicsObject(&cube->GetTransform(), cube->GetBoundingVolume()));
 	cube->GetPhysicsObject()->SetInverseMass(0.0f);
 	cube->GetPhysicsObject()->InitCubeInertia();

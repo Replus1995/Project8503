@@ -52,7 +52,7 @@ void PhysicsSystem::BuildSpaceTree()
 	return;
 }
 
-bool PhysicsSystem::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject) const
+bool PhysicsSystem::Raycast(Ray& r, RayCollision& closestCollision, bool closestObject, PhysicsChannel channel) const
 {
 	GameObjectIterator first, last;
 	std::vector<GameObject*> ObjectsToTest;
@@ -83,7 +83,7 @@ bool PhysicsSystem::Raycast(Ray& r, RayCollision& closestCollision, bool closest
 			continue;
 		}
 		RayCollision thisCollision;
-		if (CollisionDetection::RayIntersection(r, *object, thisCollision)) {
+		if (CollisionDetection::RayIntersection(r, *object, thisCollision, channel)) {
 
 			if (!closestObject) {
 				closestCollision = collision;

@@ -9,7 +9,7 @@ void TutorialMenu::Draw()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x, main_viewport->WorkPos.y), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(360, 240), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(360, 260), ImGuiCond_Always);
 
     if (!ImGui::Begin("Tutorial Menu", NULL, window_flags))
     {
@@ -59,7 +59,27 @@ void TutorialMenu::Draw()
         ImGui::Separator();
     }
 
-
+    if (game->selectionObject)
+    {
+        ImGui::Text("Selected Object:");
+        std::string posStr = "Position: " + game->selectionObject->GetTransform().GetPosition().ToString();
+        ImGui::BulletText(posStr.c_str());
+        std::string rotStr = "Rotation: " + game->selectionObject->GetTransform().GetOrientation().ToEuler().ToString();
+        ImGui::BulletText(rotStr.c_str());
+        if (game->selectionObject->GetPhysicsObject())
+        {
+            std::string invMassStr = "Inverse Mass: " + std::to_string(game->selectionObject->GetPhysicsObject()->GetInverseMass());
+            ImGui::BulletText(invMassStr.c_str());
+            std::string elasticityStr = "Elasticity: " + std::to_string(game->selectionObject->GetPhysicsObject()->GetElasticity());
+            ImGui::BulletText(elasticityStr.c_str());
+            std::string frictionStr = "Elasticity: " + std::to_string(game->selectionObject->GetPhysicsObject()->GetFriction());
+            ImGui::BulletText(frictionStr.c_str());
+            std::string lVelocityStr = "Linear Velocity: " + game->selectionObject->GetPhysicsObject()->GetLinearVelocity().ToString();
+            ImGui::BulletText(lVelocityStr.c_str());
+            std::string aVelocityStr = "Angular Velocity: " + game->selectionObject->GetPhysicsObject()->GetAngularVelocity().ToString();
+            ImGui::BulletText(aVelocityStr.c_str());
+        }
+    }
 
     ImGui::End();
 }

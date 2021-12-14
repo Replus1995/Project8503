@@ -40,7 +40,7 @@ namespace NCL {
 				shuffleObjects = state;
 			}
 
-			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject = false) const;
+			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject = false, PhysicsChannel channel = PhysCh_RayCast) const;
 
 			void UpdateGameObjects(float dt);
 
@@ -56,6 +56,8 @@ namespace NCL {
 				std::vector<Constraint*>::const_iterator& first,
 				std::vector<Constraint*>::const_iterator& last) const;
 
+			static GameWorld* GetInstance() { return instance; };
+
 		protected:
 			std::vector<GameObject*> gameObjects;
 			std::vector<Constraint*> constraints;
@@ -65,6 +67,8 @@ namespace NCL {
 			bool	shuffleConstraints;
 			bool	shuffleObjects;
 			int		worldIDCounter;
+
+			static GameWorld* instance;
 		};
 	}
 }

@@ -1,10 +1,9 @@
-#include "BallLevelMenu.h"
-#include <algorithm>
+#include "MazeLevelMenu.h"
 
 using namespace NCL;
 using namespace CSC8503;
 
-void BallLevelMenu::Draw()
+void MazeLevelMenu::Draw()
 {
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
@@ -27,20 +26,16 @@ void BallLevelMenu::Draw()
     ImGui::BulletText(statusStr.c_str());
     ImGui::Separator();
     ImGui::Text("Control Guide:");
-    ImGui::BulletText("Use mouse to select which board you want to control");
-    ImGui::BulletText("Press E to push the ball");
-    ImGui::BulletText("Press R to return to last check point");
+    ImGui::BulletText("Use Up|Down|Left|Right to control the player ball");
+    ImGui::BulletText("Yellow coin = 50pts");
+    ImGui::BulletText("Blue capsule = 20pts & freeze enemy for 3 seconds & power up player");
     ImGui::Separator();
 
 
     ImGui::End();
 }
 
-void BallLevelMenu::Update(float dt)
+void MazeLevelMenu::Update(float dt)
 {
-	if (!reachGoal)
-	{
-		timeCount += dt;
-	}
-	score = std::max(int(1000 - floor(timeCount / 5)), 0);
+	timeCount += dt;
 }

@@ -33,7 +33,7 @@ namespace NCL {
 		public:
 			NavigationGrid();
 			NavigationGrid(const std::string&filename);
-			~NavigationGrid();
+			virtual ~NavigationGrid();
 
 			bool FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) override;
 				

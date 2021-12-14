@@ -13,11 +13,11 @@ namespace NCL {
 			{};
 			virtual ~TriggerObject() {};
 			virtual void OnCollisionBegin(GameObject* otherObject) {
+				isActive = false;
 				for  (TriggerCallback& func : triggerFuncs)
 				{
 					func(otherObject);
 				}
-				isActive = false;
 			}
 
 			void AddTriggerCallback(TriggerCallback func)

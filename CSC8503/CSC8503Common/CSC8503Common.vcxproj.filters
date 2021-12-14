@@ -135,6 +135,9 @@
     <ClInclude Include="SliderConstraint.h">
       <Filter>Physics</Filter>
     </ClInclude>
+    <ClInclude Include="BehaviourParallel.h">
+      <Filter>Behaviour</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameWorld.cpp">

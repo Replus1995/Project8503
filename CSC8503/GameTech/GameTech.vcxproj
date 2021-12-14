@@ -156,6 +156,10 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MazeEnemyObject.cpp" />
+    <ClCompile Include="MazeGameMode.cpp" />
+    <ClCompile Include="MazeLevelMenu.cpp" />
+    <ClCompile Include="MazeMap.cpp" />
     <ClCompile Include="PauseMenu.cpp" />
     <ClCompile Include="PauseState.cpp" />
     <ClCompile Include="TutorialGame.cpp" />
@@ -164,6 +168,7 @@
   <ItemGroup>
     <ClInclude Include="AutoRotateObject.h" />
     <ClInclude Include="BallLevelMenu.h" />
+    <ClInclude Include="BonusObject.h" />
     <ClInclude Include="CheckPointObject.h" />
     <ClInclude Include="DebugAI.h" />
     <ClInclude Include="GameMode.h" />
@@ -179,6 +184,11 @@
     <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="LineMoveObject.h" />
     <ClInclude Include="MainBallObject.h" />
+    <ClInclude Include="MazeEnemyObject.h" />
+    <ClInclude Include="MazeGameMode.h" />
+    <ClInclude Include="MazeLevelMenu.h" />
+    <ClInclude Include="MazeMap.h" />
+    <ClInclude Include="MazePlayerObject.h" />
     <ClInclude Include="PauseMenu.h" />
     <ClInclude Include="PauseState.h" />
     <ClInclude Include="ShootableObject.h" />

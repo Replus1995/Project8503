@@ -36,7 +36,7 @@ NavigationGrid::NavigationGrid(const std::string&filename) : NavigationGrid() {
 			char type = 0;
 			infile >> type;
 			n.type = type;
-			n.position = Vector3((float)(x * nodeSize), 0, (float)(y * nodeSize));
+			n.position = Vector3((float)((x - gridWidth / 2) * nodeSize) + (float)nodeSize / 2.0f, 0, (float)((y - gridHeight / 2) * nodeSize) + (float)nodeSize / 2.0f);
 		}
 	}
 	
@@ -77,11 +77,14 @@ NavigationGrid::~NavigationGrid()	{
 
 bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, NavigationPath& outPath) {
 	//need to work out which node 'from' sits in, and 'to' sits in
-	int fromX = ((int)from.x / nodeSize);
-	int fromZ = ((int)from.z / nodeSize);
+	int halfGridWidth = gridWidth / 2;
+	int halfGridHeight = gridHeight / 2;
 
-	int toX = ((int)to.x / nodeSize);
-	int toZ = ((int)to.z / nodeSize);
+	int fromX = ((int)(from.x + halfGridWidth * nodeSize) / nodeSize);
+	int fromZ = ((int)(from.z + halfGridHeight * nodeSize) / nodeSize);
+
+	int toX = ((int)(to.x + halfGridWidth * nodeSize) / nodeSize);
+	int toZ = ((int)(to.z + halfGridHeight * nodeSize) / nodeSize);
 
 	if (fromX < 0 || fromX > gridWidth - 1 ||
 		fromZ < 0 || fromZ > gridHeight - 1) {
@@ -104,6 +107,7 @@ bool NavigationGrid::FindPath(const Vector3& from, const Vector3& to, Navigation
 	startNode->f = 0;
 	startNode->g = 0;
 	startNode->parent = nullptr;
+
 
 	GridNode* currentBestNode = nullptr;
 

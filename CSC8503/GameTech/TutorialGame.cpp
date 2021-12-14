@@ -10,6 +10,7 @@
 #include "../CSC8503Common/HingeConstraint.h"
 
 #include "BallGameMode.h"
+#include "MazeGameMode.h"
 #include "GameUI.h"
 #include "TutorialMenu.h"
 #include "PauseState.h"
@@ -74,6 +75,8 @@ void TutorialGame::InitialiseAssets() {
 	basicTex	= (OGLTexture*)TextureLoader::LoadAPITexture("checkerboard.png");
 	basicShader = new OGLShader("GameTechVert.glsl", "GameTechFrag.glsl");
 
+	dogeTex = (OGLTexture*)TextureLoader::LoadAPITexture("doge.png");
+
 	InitCamera();
 }
 
@@ -89,6 +92,8 @@ TutorialGame::~TutorialGame()	{
 	delete bonusMesh;
 	delete capsuleMesh;
 	delete appleMesh;
+
+	delete dogeTex;
 
 	delete pauseMachine;
 	delete gameUI;
@@ -149,12 +154,14 @@ void TutorialGame::SetBallLevel()
 {
 	gameMode.reset(new BallGameMode(this));
 	InitWorld();
+	InitCamera();
 }
 
 void TutorialGame::SetMazeLevel()
 {
-	gameMode.reset();
+	gameMode.reset(new MazeGameMode(this));
 	InitWorld();
+	InitCamera();
 }
 
 void TutorialGame::UpdateKeyActions(float dt) {
@@ -202,6 +209,8 @@ void TutorialGame::UpdateKeyActions(float dt) {
 }
 
 void TutorialGame::LockedObjectMovement() {
+	return;
+
 	Matrix4 view		= world->GetMainCamera()->BuildViewMatrix();
 	Matrix4 camWorld	= view.Inverse();
 
@@ -277,10 +286,13 @@ void TutorialGame::DebugObjectMovement() {
 
 void TutorialGame::InitCamera() {
 	world->GetMainCamera()->SetNearPlane(0.1f);
-	world->GetMainCamera()->SetFarPlane(500.0f);
-	world->GetMainCamera()->SetPitch(-15.0f);
+	world->GetMainCamera()->SetFarPlane(5000.0f);
+	/*world->GetMainCamera()->SetPitch(-15.0f);
 	world->GetMainCamera()->SetYaw(315.0f);
-	world->GetMainCamera()->SetPosition(Vector3(-60, 40, 60));
+	world->GetMainCamera()->SetPosition(Vector3(-60, 40, 60));*/
+	world->GetMainCamera()->SetPitch(camInitRot.z);
+	world->GetMainCamera()->SetYaw(camInitRot.y);
+	world->GetMainCamera()->SetPosition(camInitPos);
 	lockedObject = nullptr;
 }
 

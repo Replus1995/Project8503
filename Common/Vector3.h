@@ -10,6 +10,7 @@ https://research.ncl.ac.uk/game/
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <string>
 
 namespace NCL {
 	namespace Maths {
@@ -171,6 +172,11 @@ namespace NCL {
 				o << "Vector3(" << v.x << "," << v.y << "," << v.z << ")" << std::endl;
 				return o;
 			}
+
+			inline std::string ToString()
+			{
+				return "(" + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(z) + ")";
+			};
 		};
 	}
 }

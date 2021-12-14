@@ -14,7 +14,7 @@
 
 #include "PauseMenu.h"
 
-//#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" ) 
+#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" ) 
 
 using namespace NCL;
 using namespace CSC8503;
@@ -47,7 +47,7 @@ int main() {
 	}
 #endif //  SimpleTestAI
 
-	Window*w = Window::CreateGameWindow("GameTech", 1280, 720, false);
+	Window*w = Window::CreateGameWindow("GameTech", 1920, 1080, false);
 	if (!w->HasInitialised()) {
 		return -1;
 	}
