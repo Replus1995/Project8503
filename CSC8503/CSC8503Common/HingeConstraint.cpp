@@ -5,43 +5,68 @@ using namespace NCL;
 using namespace CSC8503;
 using namespace Maths;
 
+template<class T>
+T Clamp(T x, T min, T max)
+{
+	if (x > max)
+		return max;
+	if (x < min)
+		return min;
+	return x;
+}
+
+
 void HingeConstraint::UpdateConstraint(float dt)
 {
+	if (axisIndex < 0 || axisIndex>2) return;
+
 	Quaternion orientationA = objectA->GetTransform().GetOrientation();
 	Quaternion orientationB = objectB->GetTransform().GetOrientation();
+
 	Matrix3 rotMatA = Matrix3(orientationA);
 	Matrix3 rotMatB = Matrix3(orientationB);
 	Vector3 w1 = rotMatA.GetColumn(axisIndex);
-	Vector3 w2 = rotMatB.GetColumn(axisIndex);
+	std::vector<Vector3> uv;
+	for (int i = 0; i < 3; i++)
+	{
+		if (i == axisIndex) continue;
+		uv.push_back(rotMatB.GetColumn(i));
+	}
 
 	PhysicsObject* physA = objectA->GetPhysicsObject();
 	PhysicsObject* physB = objectB->GetPhysicsObject();
-	Vector3 rAngularVelocity = physA->GetAngularVelocity() - physB->GetAngularVelocity();
+	ApplyAngularImpulse(physA, physB, w1, uv[0], uv[1], dt);
+}
 
+void HingeConstraint::ApplyAngularImpulse(PhysicsObject* physA, PhysicsObject* physB, const Vector3& w1, const Vector3& u2, const Vector3& v2, float dt)
+{
+	float C1 = Clamp(Vector3::Dot(u2, w1), -1.0f, 1.0f);
+	float C2 = Clamp(Vector3::Dot(v2, w1), -1.0f, 1.0f);
 
-	float C = Vector3::Dot(rAngularVelocity, w1);
+	if (abs(C1) < 0.0001f && abs(C2) < 0.0001f) return;
+	
 
-	if (abs(C) > 0.0f)
-	{
-		
+	Vector3 J1 = Vector3::Cross(u2, w1);
+	Vector3 J2 = Vector3::Cross(v2, w1);
 
-		Vector3 J = Vector3::Cross(rAngularVelocity, w1).Normalised();
-		
-		
-		//Vector3 rAngularVelocity = physB->GetAngularVelocity() - physA->GetAngularVelocity();
-		float dC = Vector3::Dot(J, rAngularVelocity);
+	Vector3 rAngularVelocity = physB->GetAngularVelocity() - physA->GetAngularVelocity();
+	float dC1 = Vector3::Dot(J1, rAngularVelocity);
+	float dC2 = Vector3::Dot(J2, rAngularVelocity);
 
-		printf("C1: %f, dC1: %f, dt: %f\n", C, dC, dt);
+	physA->UpdateInertiaTensor();
+	physB->UpdateInertiaTensor();
 
-		Matrix3 invInertia = physA->GetInertiaTensor() + physB->GetInertiaTensor();
-		float K = Vector3::Dot(J, invInertia * J);
-		float biasFactor = 0.01f;
-		float lambda = -(dC + biasFactor * C / dt) / K;
+	Vector3 invInertia = physA->GetInertia() + physB->GetInertia();
+	float K1 = Vector3::Dot(J1, invInertia * J1);
+	float K2 = Vector3::Dot(J2, invInertia * J2);
+	float biasFactor = 0.001f;
+	float lambda1 = -(dC1 + biasFactor * C1 / dt) / K1;
+	float lambda2 = -(dC2 + biasFactor * C2 / dt) / K2;
 
-		Vector3 aImpulse = -J * lambda;
-		Vector3 bImpulse = J * lambda;
-		physA->ApplyAngularImpulse(aImpulse);
-		physB->ApplyAngularImpulse(bImpulse);
-	}
+	Vector3 impulse = J1 * lambda1 + J2 * lambda2;
+
+	physA->ApplyAngularImpulse(-impulse);
+	physB->ApplyAngularImpulse(impulse);
 
 }
+

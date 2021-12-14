@@ -4,6 +4,8 @@
 #include "MazePlayerObject.h"
 #include "MazeEnemyObject.h"
 #include "GameUI.h"
+#include "../CSC8503Common/PositionConstraint.h"
+#include "../CSC8503Common/HingeConstraint.h"
 
 using namespace NCL;
 using namespace CSC8503;
@@ -47,7 +49,7 @@ void MazeGameMode::SetupScene()
 	gameInst->AddWallToWorld(Vector3(15, 10, 55), Vector3(35, 10, 5), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_R_08");
 	gameInst->AddWallToWorld(Vector3(-10, 10, 75), Vector3(60, 10, 5), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_R_09");
 
-	gameInst->AddWallToWorld(Vector3(75, 10, -65), Vector3(5, 10, 5), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_01");
+	//gameInst->AddWallToWorld(Vector3(75, 10, -65), Vector3(5, 10, 5), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_01");
 	gameInst->AddWallToWorld(Vector3(-45, 10, -55), Vector3(5, 10, 15), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_02");
 	gameInst->AddWallToWorld(Vector3(-75, 10, -40), Vector3(5, 10, 20), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_03");
 	gameInst->AddWallToWorld(Vector3(45, 10, -35), Vector3(5, 10, 15), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_04");
@@ -55,6 +57,8 @@ void MazeGameMode::SetupScene()
 	gameInst->AddWallToWorld(Vector3(-15, 10, 30), Vector3(5, 10, 20), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_06");
 	gameInst->AddWallToWorld(Vector3(45, 10, 30), Vector3(5, 10, 20), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_07");
 	gameInst->AddWallToWorld(Vector3(-55, 10, 45), Vector3(5, 10, 25), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_08");
+
+	AddRotateGate(Vector3(75, 10, -65), Vector3(.5, 10, 5), "Gate_01");
 	
 	player = AddPlayer();
 	player->GetRenderObject()->SetColour(Vector4(0.3, 1, 0.3, 1));
@@ -234,4 +238,51 @@ void MazeGameMode::ReplaceBonusObject(BonusObject* object)
 	map->SetPosAvailable(lastNodeId);
 	object->GetTransform().SetPosition(Vector3(objectPos.x, 4, objectPos.z));
 	object->SetActive(true);
+}
+
+GameObject* MazeGameMode::AddRotateGate(const Vector3& position, Vector3 dimensions, const std::string& name)
+{
+	GameObject* center = new GameObject(name+"_Center");
+	AABBVolume* centerVolume = new AABBVolume(Vector3(1,1,1));
+	center->SetBoundingVolume((CollisionVolume*)centerVolume);
+	center->GetTransform().SetPosition(position);
+	center->SetRenderObject(nullptr);
+	center->SetPhysicsObject(new PhysicsObject(&center->GetTransform(), center->GetBoundingVolume()));
+
+	center->GetPhysicsObject()->SetInverseMass(0);
+	center->GetPhysicsObject()->InitCubeInertia();
+	center->GetPhysicsObject()->SetPhysicsChannel(PhysCh_Static);
+	center->GetPhysicsObject()->SetElasticity(0);
+	center->GetPhysicsObject()->SetFriction(0);
+
+	gameInst->world->AddGameObject(center);
+
+	GameObject* door = new GameObject(name+"_Door");
+	OBBVolume* doorVolume = new OBBVolume(dimensions);
+	door->SetBoundingVolume((CollisionVolume*)doorVolume);
+	door->GetTransform()
+		.SetPosition(position)
+		.SetScale(dimensions * 2);
+
+	door->SetRenderObject(new RenderObject(&door->GetTransform(), gameInst->cubeMesh, nullptr, gameInst->basicShader));
+	door->GetRenderObject()->SetColour(Vector4(.5, .5, .5, 1));
+	door->SetPhysicsObject(new PhysicsObject(&door->GetTransform(), door->GetBoundingVolume()));
+
+	door->GetPhysicsObject()->SetInverseMass(8);
+	door->GetPhysicsObject()->InitCubeInertia();
+	door->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+	door->GetPhysicsObject()->SetElasticity(0.8);
+	door->GetPhysicsObject()->SetFriction(0.1);
+
+	gameInst->world->AddGameObject(door);
+
+	HingeConstraint* hingeCons = new HingeConstraint(center, door, 1);
+	gameInst->world->AddConstraint(hingeCons);
+
+	PositionConstraint* posCons = new PositionConstraint(center, door, 0);
+	gameInst->world->AddConstraint(posCons);
+
+
+
+	return door;
 }

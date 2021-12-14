@@ -66,6 +66,7 @@ namespace NCL {
 
 			void InitCubeInertia();
 			void InitSphereInertia();
+			Vector3 GetInertia() { return inverseInertia; };
 
 			void UpdateInertiaTensor();
 

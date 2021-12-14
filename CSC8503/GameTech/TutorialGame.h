@@ -41,6 +41,7 @@ namespace NCL {
 			void InitDefaultFloor();
 			void BridgeConstraintTest();
 			void SliderContraintTest();
+			void HingeContraintTest();
 	
 			bool SelectObject();
 			void MoveSelectedObject();

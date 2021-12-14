@@ -20,7 +20,7 @@ namespace NCL {
 				{
 					forceDir.Normalise();
 				
-					Vector3 newVelocity = physicsObject->GetLinearVelocity() + forceDir * 2;
+					Vector3 newVelocity = physicsObject->GetLinearVelocity() + forceDir * 100 * dt;
 					physicsObject->SetLinearVelocity(newVelocity);
 
 					transform.SetPosition(transform.GetPosition() + physicsObject->GetLinearVelocity() * dt);

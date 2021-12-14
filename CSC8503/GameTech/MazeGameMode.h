@@ -25,7 +25,7 @@ namespace NCL {
 
 			void ReplaceBonusObject(BonusObject* object);
 
-			
+			GameObject* AddRotateGate(const Vector3& position, Vector3 dimensions, const std::string& name);
 
 		protected:
 			GameObject* mainBall = nullptr;

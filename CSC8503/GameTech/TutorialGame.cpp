@@ -304,6 +304,7 @@ void TutorialGame::InitWorld() {
 	if(gameMode) gameMode->SetupScene();
 
 	//SliderContraintTest();
+	//HingeContraintTest();
 
 	//InitGameExamples();
 	//InitDefaultFloor();
@@ -335,11 +336,23 @@ void TutorialGame::BridgeConstraintTest() {
 
 void TutorialGame::SliderContraintTest()
 {
-	GameObject* obj_a = AddCubeToWorld(Vector3(50, 50, 50), Vector3(1, 1, 1), 0, "SpinTest_A");
-	GameObject* obj_b = AddCubeToWorld(Vector3(60, 50, 50), Vector3(1, 1, 1), 5, "SpinTest_B");
+	GameObject* obj_a = AddCubeToWorld(Vector3(50, 50, 50), Vector3(1, 1, 1), 0, "SliderTest_A");
+	GameObject* obj_b = AddCubeToWorld(Vector3(60, 50, 50), Vector3(1, 1, 1), 5, "SliderTest_B");
 	obj_b->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
 
 	SliderConstraint* constraint = new SliderConstraint(obj_a, obj_b, Vector3(1,0,0), 5, 15);
+	//HingeConstraint* constraint = new HingeConstraint(obj_a, obj_b, 1);
+	world->AddConstraint(constraint);
+}
+
+void TutorialGame::HingeContraintTest()
+{
+	GameObject* obj_a = AddCubeToWorld_OBB(Vector3(50, 50, 50), Vector3(1, 1, 1), 10, "HingeTest_A");
+	GameObject* obj_b = AddCubeToWorld_OBB(Vector3(60, 50, 50), Vector3(1, 1, 1), 10, "HingeTest_B");
+	obj_a->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+	obj_b->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+
+	HingeConstraint* constraint = new HingeConstraint(obj_a, obj_b, 2);
 	//HingeConstraint* constraint = new HingeConstraint(obj_a, obj_b, 1);
 	world->AddConstraint(constraint);
 }

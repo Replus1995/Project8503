@@ -1,5 +1,6 @@
 #pragma once
 #include "Constraint.h"
+#include "PhysicsObject.h"
 #include "../../Common/Vector3.h"
 
 namespace NCL {
@@ -18,6 +19,7 @@ namespace NCL {
 			~HingeConstraint() {};
 
 			void UpdateConstraint(float dt) override;
+			void ApplyAngularImpulse(PhysicsObject* physA, PhysicsObject* physB, const Vector3& w1, const Vector3& u2, const Vector3& v2, float dt);
 
 		protected:
 			GameObject* objectA;
