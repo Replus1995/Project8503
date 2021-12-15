@@ -80,6 +80,7 @@ namespace NCL {
 										const Vector3& centerDist, const Vector3& axis, float& overlap);
 		static float ValueSign(float value);
 		static float Mat3Val(const Matrix3& matrix, int i, int j);
+		static Vector3 BoxCornerDir(int index);
 
 		static Vector3 FindClosestNormalOnBox(const Vector3& localNormal);
 

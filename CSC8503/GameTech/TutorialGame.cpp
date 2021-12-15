@@ -531,14 +531,14 @@ void TutorialGame::InitGameExamples() {
 
 	//BridgeConstraintTest();
 
-	//AddCubeToWorld_OBB(Vector3(-5, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB_1");
-	//AddCubeToWorld_OBB(Vector3(0, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB");
+	AddCubeToWorld_OBB(Vector3(-5, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB_1")->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+	AddCubeToWorld_OBB(Vector3(0, 20, -10), Vector3(1, 1, 1), 10.0f, "TestCollision_OBB")->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
 	//AddSphereToWorld(Vector3(5, 20, -10), 1.0f, 10.0f, "TestCollision_Sphere");
 	//AddCubeToWorld(Vector3(0, 20, -5), Vector3(1, 1, 1), 10.0f, "TestCollision_AABB");
 
 	//AddStateObjectToWorld(Vector3(50, 10, 0), "TestStateObject");
 
-	AddCubeToWorld_OBB(Vector3(0, 0, -5), Vector3(1, 5, 1), 0.0f, "TestStaticChannel_OBB")->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
+	//AddCubeToWorld_OBB(Vector3(0, 0, -5), Vector3(1, 5, 1), 0.0f, "TestStaticChannel_OBB")->GetPhysicsObject()->AddPhysicsChannel(PhysCh_Static);
 	
 }
 

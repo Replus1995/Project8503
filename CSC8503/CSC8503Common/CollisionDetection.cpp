@@ -538,6 +538,15 @@ float CollisionDetection::Mat3Val(const Matrix3& matrix, int i, int j)
 	return matrix.array[3 * i + j];
 }
 
+Vector3 CollisionDetection::BoxCornerDir(int index)
+{
+	Vector3 cornerDir;
+	cornerDir.x = index % 2 == 0 ? -1 : 1;
+	cornerDir.z = (index / 2) % 2 == 0 ? 1 : -1;
+	cornerDir.y = index / 4 == 0 ? -1 : 1;
+	return cornerDir;
+}
+
 Vector3 CollisionDetection::FindClosestNormalOnBox(const Vector3& localNormal)
 {
 	float minDist = 1.0f;
@@ -673,9 +682,6 @@ bool CollisionDetection::OBBSphereIntersection(const OBBVolume& volumeA, const T
 
 bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector3& boxPos, const OBBVolume& volumeOBB, const Transform& TransformOBB, CollisionInfo& collisionInfo)
 {
-	static const Vector3 cornerScales[8] = { Vector3(-1, -1,-1), Vector3(1, -1, -1), Vector3(1, -1, 1), Vector3(-1, -1, 1),
-											Vector3(-1, 1, -1), Vector3(1, 1, -1), Vector3(1, 1, 1), Vector3(-1, 1, 1) };
-
 	static const float bias = 0.0001f;
 
 	Vector3 posOBB = TransformOBB.GetPosition();
@@ -685,14 +691,6 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 	Matrix3 invRotationOBB = Matrix3(orientationOBB.Conjugate());
 
 	Vector3 centerDistance = posOBB - boxPos;
-
-	/*std::vector<Vector3> cornersBox(8);
-	std::vector<Vector3> cornersOBB(8);
-	for (int i = 0; i < 8; i++)
-	{
-		cornersBox[i] = boxPos + boxSize * cornerScales[i];
-		cornersOBB[i] = posOBB + rotationOBB * (sizeOBB * cornerScales[i]);
-	}*/
 
 	bool collided = false;
 	Vector3 collisionNormal;
@@ -783,18 +781,22 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 	if (indexBox >= 0 && indexOBB < 0)
 	{
 		Vector3 localNormal;
-		localNormal[indexBox] = 1;
+		localNormal[indexBox] = 1 * dSign;
 		float planeD = -abs(Vector3::Dot(localNormal, boxSize));
 		Vector3 sum;
 		float num = 0.0f;
 		for (int i = 0; i < 8; i++)
 		{
-			Vector3 VertexOBB = rotationOBB * (cornerScales[i] * sizeOBB) + centerDistance;
+			Vector3 VertexOBB = rotationOBB * (BoxCornerDir(i) * sizeOBB) + centerDistance;
 			float side = Vector3::Dot(localNormal, VertexOBB) + planeD;
 			if (side < 0)
 			{
-				num += 1.0f;
-				sum += Maths::Clamp(VertexOBB, -boxSize, boxSize);
+				if (abs(side) > minPenetration - 0.01f)
+				{
+					num += 1.0f;
+					sum += Maths::Clamp(VertexOBB, -boxSize, boxSize);
+					//sum += VertexOBB;
+				}
 			}
 		}
 		if (num > 0.0f)
@@ -807,18 +809,22 @@ bool CollisionDetection::BoxOBBIntersection(const Vector3& boxSize, const Vector
 	else if (indexBox < 0 && indexOBB >= 0)
 	{
 		Vector3 localNormal;
-		localNormal[indexOBB] = 1;
+		localNormal[indexOBB] = 1 * dSign;
 		float planeD = -abs(Vector3::Dot(localNormal, sizeOBB));
 		Vector3 sum;
 		float num = 0.0f;
 		for (int i = 0; i < 8; i++)
 		{
-			Vector3 VertexBox = invRotationOBB * (cornerScales[i] * boxSize - centerDistance);
+			Vector3 VertexBox = invRotationOBB * (BoxCornerDir(i) * boxSize - centerDistance);
 			float side = Vector3::Dot(localNormal, VertexBox) + planeD;
 			if (side < 0)
 			{
-				num += 1.0f;
-				sum += Maths::Clamp(VertexBox, -sizeOBB, sizeOBB);
+				if (abs(side) > minPenetration - 0.01f)
+				{
+					num += 1.0f;
+					sum += Maths::Clamp(VertexBox, -sizeOBB, sizeOBB);
+					//sum += VertexBox;
+				}
 			}
 		}
 		if (num > 0.0f)

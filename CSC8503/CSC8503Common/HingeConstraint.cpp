@@ -1,20 +1,10 @@
 #include "HingeConstraint.h"
 #include "GameObject.h"
+#include "../../Common/Maths.h"
 
 using namespace NCL;
 using namespace CSC8503;
 using namespace Maths;
-
-template<class T>
-T Clamp(T x, T min, T max)
-{
-	if (x > max)
-		return max;
-	if (x < min)
-		return min;
-	return x;
-}
-
 
 void HingeConstraint::UpdateConstraint(float dt)
 {
@@ -40,11 +30,10 @@ void HingeConstraint::UpdateConstraint(float dt)
 
 void HingeConstraint::ApplyAngularImpulse(PhysicsObject* physA, PhysicsObject* physB, const Vector3& w1, const Vector3& u2, const Vector3& v2, float dt)
 {
-	float C1 = Clamp(Vector3::Dot(u2, w1), -1.0f, 1.0f);
-	float C2 = Clamp(Vector3::Dot(v2, w1), -1.0f, 1.0f);
+	float C1 = Maths::Clamp(Vector3::Dot(u2, w1), -1.0f, 1.0f);
+	float C2 = Maths::Clamp(Vector3::Dot(v2, w1), -1.0f, 1.0f);
 
 	if (abs(C1) < 0.0001f && abs(C2) < 0.0001f) return;
-	
 
 	Vector3 J1 = Vector3::Cross(u2, w1);
 	Vector3 J2 = Vector3::Cross(v2, w1);
