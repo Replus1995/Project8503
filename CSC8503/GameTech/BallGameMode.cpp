@@ -51,8 +51,6 @@ void BallGameMode::SetupScene()
 	floor_04->GetPhysicsObject()->SetFriction(0.6);
 	floor_04->GetPhysicsObject()->SetElasticity(0.6);
 
-
-
 	//Add air wall
 	gameInst->AddAirWallToWorld(Vector3(0, 22, 0), Vector3(100, 2, 100), "AirWall_Top");
 
@@ -116,21 +114,40 @@ void BallGameMode::SetupScene()
 	AddShootBoard(Vector3(-65, 10, -90), Vector3(34, 10, 1), 0.5f, Vector3(0, 0, 1), 3, 30, "ShootBoard_04");
 
 	CheckPointObject* ckPoint_01 = AddCheckPoint(Vector3(37, 10, -55), Vector3(22, 10, 15), "CheckPoint_01");
-	ckPoint_01->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 1 reached."); });
+	ckPoint_01->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 1 reached."); menu->extraScore += 20; });
 	CheckPointObject* ckPoint_02 = AddCheckPoint(Vector3(-8, 10, 75), Vector3(21, 10, 14), "CheckPoint_02");
-	ckPoint_02->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 2 reached."); });
+	ckPoint_02->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 2 reached."); menu->extraScore += 20; });
 	CheckPointObject* ckPoint_03 = AddCheckPoint(Vector3(-65, 10, -75), Vector3(35, 10, 14), "CheckPoint_03");
-	ckPoint_03->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 3 reached."); });
+	ckPoint_03->AddTriggerCallback([&](GameObject* a) {menu->SetStatusString("Check point 3 reached."); menu->extraScore += 20; });
 	//AddMixedGrid(Vector3(-65, 50, 20), 8, 8, 6, 6);
 
 	TriggerObject* gridTrigger = AddTriggerVolume(Vector3(-65, 10, -30), Vector3(34, 10, 2), nullptr, "GridTrigger");
 	gridTrigger->AddTriggerCallback([&](GameObject* a) { AddMixedGrid(Vector3(-65, 50, 20), 8, 8, 6, 6); });
 
-	TriggerObject* goalTrigger = AddTriggerVolume(Vector3(-65, 10, 80), Vector3(10, 10, 10), gameInst->cubeMesh, "Goalrigger");
+	TriggerObject* goalTrigger = AddTriggerVolume(Vector3(-65, 10, 80), Vector3(10, 10, 10), gameInst->cubeMesh, "GoalTrigger");
 	//goalTrigger->GetRenderObject()->SetColour(Vector4(1., .3, .3, 1));
-	goalTrigger->AddTriggerCallback([&](GameObject* a) { menu->SetReachGoal(true); menu->SetStatusString("Goal reached."); });
+	goalTrigger->AddTriggerCallback([&](GameObject* a) { menu->SetReachGoal(true); menu->SetStatusString("Goal reached. You win!"); menu->extraScore += 50; });
 
 	mainBall = AddMainBall(Vector3(80, 5, 70), 2.0f, 10.0f, "MainBall");
+
+
+
+
+	GameObject* floor_extra = gameInst->AddFloorToWorld(Vector3(130, -2, 0), Vector3(30, 2, 100), Vector4(1, 1, 1, 0), "Floor_Extra");
+	GameObject* cube_projection = gameInst->AddCubeToWorld(Vector3(120, 20, 0), Vector3(2, 2, 2), 10.0f, "Cube_Projection");
+	cube_projection->GetPhysicsObject()->SetCollisionMethod(CM_Projection);
+	cube_projection->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+	GameObject* sphere_penalty = gameInst->AddSphereToWorld(Vector3(140, 20, 0), 2, 10.0f, "Sphere_Panelty");
+	sphere_penalty->GetPhysicsObject()->SetCollisionMethod(CM_Penalty);
+	sphere_penalty->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+	gameInst->AddCubeToWorld(Vector3(130, 20, 20), Vector3(2, 2, 2), 10.0f, "Cube_Impulse")->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+
+
+	gameInst->AddPlaneToWorld(Vector3(180, 0, 0), Vector2(20, 20), "AirPlane_Bot");
+	GameObject* sphere_plane = gameInst->AddSphereToWorld(Vector3(180, 20, 0), 2, 10.0f, "Sphere_Plane");
+	sphere_plane->GetPhysicsObject()->AddPhysicsChannel(PhysCh_RayCast);
+	sphere_plane->GetPhysicsObject()->AddPhysicsChannel(PhysCh_AirWall);
+
 }
 
 void BallGameMode::Update(float dt)

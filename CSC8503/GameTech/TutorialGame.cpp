@@ -689,6 +689,26 @@ GameObject* TutorialGame::AddAirWallToWorld(const Vector3& position, Vector3 dim
 	return wall;
 }
 
+GameObject* TutorialGame::AddPlaneToWorld(const Vector3& position, Vector2 dimensions, const std::string& name)
+{
+	GameObject* plane = new GameObject(name);
+	PlaneVolume* volume = new PlaneVolume(dimensions);
+	plane->SetBoundingVolume((CollisionVolume*)volume);
+	plane->GetTransform().SetPosition(position).SetScale(Vector3(dimensions.x, 0, dimensions.y) * 2);
+
+	plane->SetRenderObject(new RenderObject(&plane->GetTransform(), cubeMesh, basicTex, basicShader));
+	plane->SetPhysicsObject(new PhysicsObject(&plane->GetTransform(), plane->GetBoundingVolume()));
+
+	plane->GetPhysicsObject()->SetInverseMass(0);
+	plane->GetPhysicsObject()->SetPhysicsChannel(PhysCh_Static | PhysCh_AirWall);
+	plane->GetPhysicsObject()->SetElasticity(1);
+	plane->GetPhysicsObject()->SetFriction(0);
+
+	world->AddGameObject(plane);
+
+	return plane;
+}
+
 StateGameObject* TutorialGame::AddStateObjectToWorld(const Vector3& position, const std::string& name)
 {
 	StateGameObject* object = new StateGameObject(name);

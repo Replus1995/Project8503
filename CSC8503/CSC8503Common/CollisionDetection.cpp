@@ -480,6 +480,7 @@ bool CollisionDetection::ObjectIntersection(GameObject* a, GameObject* b, Collis
 		collisionInfo.b = a;
 		return AABBOBBIntersection((AABBVolume&)*volB, transformB, (OBBVolume&)*volA, transformA, collisionInfo);
 	}
+
 	if (volA->type == VolumeType::Capsule && volB->type == VolumeType::Sphere) {
 		return CapsuleSphereIntersection((CapsuleVolume&)*volA, transformA, (SphereVolume&)*volB, transformB, collisionInfo);
 	}
@@ -489,6 +490,14 @@ bool CollisionDetection::ObjectIntersection(GameObject* a, GameObject* b, Collis
 		return CapsuleSphereIntersection((CapsuleVolume&)*volB, transformB, (SphereVolume&)*volA, transformA, collisionInfo);
 	}
 
+	if (volA->type == VolumeType::Plane && volB->type == VolumeType::Sphere) {
+		return PlaneSphereIntersection((PlaneVolume&)*volA, transformA, (SphereVolume&)*volB, transformB, collisionInfo);
+	}
+	if (volA->type == VolumeType::Sphere && volB->type == VolumeType::Plane) {
+		collisionInfo.a = b;
+		collisionInfo.b = a;
+		return PlaneSphereIntersection((PlaneVolume&)*volB, transformB, (SphereVolume&)*volA, transformA, collisionInfo);
+	}
 	
 	
 
@@ -968,4 +977,19 @@ bool CollisionDetection::CapsuleSphereIntersection(const CapsuleVolume& volumeA,
 		collisionInfo.point.localA += upA * cylinderHalfHeight * cylinderCollided;
 	}
 	return sphereCollided;
+}
+
+bool CollisionDetection::PlaneSphereIntersection(const PlaneVolume& volumeA, const Transform& worldTransformA, const SphereVolume& volumeB, const Transform& worldTransformB, CollisionInfo& collisionInfo)
+{
+	Vector3 relativePos = worldTransformB.GetPosition() - worldTransformA.GetPosition();
+	Vector3 planeNormal = Matrix3(worldTransformA.GetOrientation()).GetColumn(1);
+	float planeDistance = Vector3::Dot(planeNormal, relativePos);
+	if (abs(planeDistance) < volumeB.GetRadius())
+	{
+		Vector3 cNormal = planeDistance >= 0 ? planeNormal : -planeNormal;
+		Vector3 localB = cNormal * volumeB.GetRadius();
+		collisionInfo.AddContactPoint(Vector3(), localB, cNormal, volumeB.GetRadius() - abs(planeDistance));
+		return true;
+	}
+	return false;
 }

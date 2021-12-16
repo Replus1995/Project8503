@@ -11,7 +11,7 @@ namespace NCL {
 			{
 				reachGoal = false;
 				timeCount = 0.0f;
-				score = 1000;
+				score = 100;
 				statusStr = "Start!";
 			
 			};
@@ -27,6 +27,8 @@ namespace NCL {
 			};
 			void Update(float dt);
 			
+			int extraScore = 0;
+
 		protected:
 			bool reachGoal;
 			float timeCount;

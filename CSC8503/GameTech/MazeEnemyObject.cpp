@@ -42,23 +42,34 @@ MazeEnemyObject::MazeEnemyObject(const std::string& name, MazeMap* map, MazePlay
 			RayCollision collision;
 			if (GameWorld::GetInstance()->Raycast(t_ray, collision, true, PhysCh_Dynamic))
 			{
-				if (collision.rayDistance < puDist - 5.0f) return Failure;
+				GameObject* collidedObject = (GameObject*)collision.node;
+				if (collidedObject->GetWorldID() != powerUp_01->GetWorldID()) return Failure;
+			}
+			else
+			{
+				return Failure;
 			}
 			
 			Quaternion orientation = Quaternion::FromAxis(Vector3::Cross(puDir, Vector3(0, 1, 0)), Vector3(0, 1, 0), puDir);
 			transform.SetOrientation(orientation);
+
 			destPowerUpPos = powerUp_01->GetTransform().GetPosition();
-			mazeMap->FindPath(transform.GetPosition(), destPowerUpPos, pathToPowerUp);
-			//DebugAI::DisplayPathFinding(pathToPowerUp.GetPoints(), Vector4(0, 0, 1, 1));
-			pathToPowerUp.PopWaypoint(puNextPos);
-			puMoveCount = 0.0f;
+			float destDistance = (destPowerUpPos - transform.GetPosition()).Length();
+			pathToPowerUp.Clear();
+			if (destDistance <= mazeMap->GetHalfSize() * 2)
+			{
+				puNextPos = destPowerUpPos;
+			}
+			else 
+			{
+				mazeMap->FindPath(transform.GetPosition(), destPowerUpPos, pathToPowerUp);
+				pathToPowerUp.PopWaypoint(puNextPos);
+			}
 
 			state = Ongoing;
 		}
 		else if (state == Ongoing)
 		{
-			if (puMoveCount > 10.0f) return Failure;
-
 			float puDistance = (powerUp_01->GetTransform().GetPosition() - destPowerUpPos).Length();
 			if (puDistance > 1.0f)
 			{
@@ -100,21 +111,33 @@ MazeEnemyObject::MazeEnemyObject(const std::string& name, MazeMap* map, MazePlay
 			puDir.Normalise();
 			Ray t_ray(transform.GetPosition(), puDir);
 			RayCollision collision;
-			GameWorld::GetInstance()->Raycast(t_ray, collision, true, PhysCh_Dynamic);
-			if (collision.rayDistance < puDist - 5.0f) return Failure;
+			if (GameWorld::GetInstance()->Raycast(t_ray, collision, true, PhysCh_Dynamic))
+			{
+				GameObject* collidedObject = (GameObject*)collision.node;
+				if (collidedObject->GetWorldID() != powerUp_02->GetWorldID()) return Failure;
+			}
+			else
+			{
+				return Failure;
+			}
 
 			destPowerUpPos = powerUp_02->GetTransform().GetPosition();
-			mazeMap->FindPath(transform.GetPosition(), destPowerUpPos, pathToPowerUp);
-			//DebugAI::DisplayPathFinding(pathToPowerUp.GetPoints(), Vector4(0, 0, 1, 1));
-			pathToPowerUp.PopWaypoint(puNextPos);
-			puMoveCount = 0.0f;
+			float destDistance = (destPowerUpPos - transform.GetPosition()).Length();
+			pathToPowerUp.Clear();
+			if (destDistance <= mazeMap->GetHalfSize() * 2)
+			{
+				puNextPos = destPowerUpPos;
+			}
+			else
+			{
+				mazeMap->FindPath(transform.GetPosition(), destPowerUpPos, pathToPowerUp);
+				pathToPowerUp.PopWaypoint(puNextPos);
+			}
 
 			state = Ongoing;
 		}
 		else if (state == Ongoing)
 		{
-			if (puMoveCount > 10.0f) return Failure;
-
 			float puDistance = (powerUp_02->GetTransform().GetPosition() - destPowerUpPos).Length();
 			if (puDistance > 1.0f)
 			{

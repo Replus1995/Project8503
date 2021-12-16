@@ -28,6 +28,9 @@ namespace NCL {
 
 			bool Raycast(Ray& r, RayCollision& closestCollision, bool closestObject, PhysicsChannel channel = PhysCh_RayCast) const;
 
+			float GetPenaltyScale() const { return penaltyScale; };
+			void SetPenaltyScale(float s) { penaltyScale = s; };
+
 		protected:
 			void BasicCollisionDetection();
 			void BroadPhase();
@@ -46,6 +49,9 @@ namespace NCL {
 			void ImpulseResolveCollision(GameObject& a , GameObject&b, CollisionDetection::ContactPoint& p) const;
 			static Vector3 GetImpulseFriction(PhysicsObject* physObj, const Vector3& normal, const Vector3& v, float m, float j);
 
+			void ProjectionResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const;
+			void PenaltyResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const;
+
 
 			GameWorld& gameWorld;
 
@@ -53,6 +59,7 @@ namespace NCL {
 			Vector3 gravity;
 			float	dTOffset;
 			float	globalDamping;
+			float	penaltyScale;
 
 			std::set<CollisionDetection::CollisionInfo> allCollisions;
 			std::set<CollisionDetection::CollisionInfo> broadphaseCollisions;

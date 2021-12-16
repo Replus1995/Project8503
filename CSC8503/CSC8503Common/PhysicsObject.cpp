@@ -35,10 +35,8 @@ void PhysicsObject::AddForce(const Vector3& addedForce) {
 
 void PhysicsObject::AddForceAtPosition(const Vector3& addedForce, const Vector3& position) {
 	Vector3 localPos = position - transform->GetPosition();
-
 	force  += addedForce;
 	torque += Vector3::Cross(localPos, addedForce);
-	return;
 }
 
 void PhysicsObject::AddTorque(const Vector3& addedTorque) {

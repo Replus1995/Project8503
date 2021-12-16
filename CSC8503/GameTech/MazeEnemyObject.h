@@ -37,7 +37,6 @@ namespace NCL {
 			Vector3 destPowerUpPos;
 			NavigationPath pathToPowerUp;
 			Vector3 puNextPos;
-			float puMoveCount = 0.0f;
 			BehaviourParallel* puFindBehaviour;
 
 			float FreezeCount;

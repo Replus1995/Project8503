@@ -9,7 +9,7 @@ void TutorialMenu::Draw()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x, main_viewport->WorkPos.y), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(360, 260), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(360, 280), ImGuiCond_Always);
 
     if (!ImGui::Begin("Tutorial Menu", NULL, window_flags))
     {
@@ -35,6 +35,9 @@ void TutorialMenu::Draw()
         float gDamping = game->physics->GetGlobalDamping();
         if (ImGui::SliderFloat("Global Damping", &gDamping, 0.0f, 1.0f))
             game->physics->SetGlobalDamping(gDamping);
+        float pScale = game->physics->GetPenaltyScale();
+        if (ImGui::SliderFloat("Penalty Scale", &pScale, 0.0f, 5000.0f))
+            game->physics->SetPenaltyScale(pScale);
     }
 
     if (ImGui::CollapsingHeader("Render"))
@@ -62,6 +65,8 @@ void TutorialMenu::Draw()
     if (game->selectionObject)
     {
         ImGui::Text("Selected Object:");
+        std::string nameStr = "Name: " + game->selectionObject->GetName();
+        ImGui::BulletText(nameStr.c_str());
         std::string posStr = "Position: " + game->selectionObject->GetTransform().GetPosition().ToString();
         ImGui::BulletText(posStr.c_str());
         std::string rotStr = "Rotation: " + game->selectionObject->GetTransform().GetOrientation().ToEuler().ToString();

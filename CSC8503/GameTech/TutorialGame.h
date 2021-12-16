@@ -63,6 +63,7 @@ namespace NCL {
 			GameObject* AddFloorToWorld(const Vector3& position, Vector3 dimensions, Vector4 Colour, const std::string& name);
 			GameObject* AddWallToWorld(const Vector3& position, Vector3 dimensions, Vector4 Colour, const std::string& name);
 			GameObject* AddAirWallToWorld(const Vector3& position, Vector3 dimensions, const std::string& name);
+			GameObject* AddPlaneToWorld(const Vector3& position, Vector2 dimensions, const std::string& name);
 			//GameObject* AddAirCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass = 10.0f, const std::string& name = "");
 
 			StateGameObject* AddStateObjectToWorld(const Vector3& position, const std::string& name);

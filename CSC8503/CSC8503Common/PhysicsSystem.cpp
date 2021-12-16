@@ -23,6 +23,7 @@ PhysicsSystem::PhysicsSystem(GameWorld& g) : gameWorld(g)	{
 	useBroadPhase	= true;	
 	dTOffset		= 0.0f;
 	globalDamping	= 0.4f;
+	penaltyScale	= 3000.0f;
 	SetGravity(Vector3(0.0f, -9.8f, 0.0f));
 }
 
@@ -279,7 +280,18 @@ void PhysicsSystem::BasicCollisionDetection() {
 			if (CollisionDetection::ObjectIntersection(*i, *j, info))
 			{
 				//std::cout << "Collision between " << (*i)->GetName() << " and " << (*j)->GetName() << std::endl;
-				ImpulseResolveCollision(*info.a, *info.b, info.point);
+				if (info.a->GetPhysicsObject()->GetCollisionMethod() == CM_Projection || info.b->GetPhysicsObject()->GetCollisionMethod() == CM_Projection)
+				{
+					ProjectionResolveCollision(*info.a, *info.b, info.point);
+				}
+				else if (info.a->GetPhysicsObject()->GetCollisionMethod() == CM_Penalty || info.b->GetPhysicsObject()->GetCollisionMethod() == CM_Penalty)
+				{
+					PenaltyResolveCollision(*info.a, *info.b, info.point);
+				}
+				else
+				{
+					ImpulseResolveCollision(*info.a, *info.b, info.point);
+				}
 				info.framesLeft = numCollisionFrames;
 				allCollisions.insert(info);
 			}
@@ -376,6 +388,39 @@ Vector3 PhysicsSystem::GetImpulseFriction(PhysicsObject* physObj, const Vector3&
 	return frictionForce;
 }
 
+void PhysicsSystem::ProjectionResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const
+{
+	PhysicsObject* physA = a.GetPhysicsObject();
+	PhysicsObject* physB = b.GetPhysicsObject();
+	Transform& transformA = a.GetTransform();
+	Transform& transformB = b.GetTransform();
+	float totalMass = physA->GetInverseMass() + physB->GetInverseMass();
+	if (totalMass == 0)
+	{
+		return;
+	}
+	transformA.SetPosition(transformA.GetPosition() - p.normal * p.penetration * (physA->GetInverseMass() / totalMass));
+	transformB.SetPosition(transformB.GetPosition() + p.normal * p.penetration * (physB->GetInverseMass() / totalMass));
+}
+
+void PhysicsSystem::PenaltyResolveCollision(GameObject& a, GameObject& b, CollisionDetection::ContactPoint& p) const
+{
+	PhysicsObject* physA = a.GetPhysicsObject();
+	PhysicsObject* physB = b.GetPhysicsObject();
+	Transform& transformA = a.GetTransform();
+	Transform& transformB = b.GetTransform();
+	float totalMass = physA->GetInverseMass() + physB->GetInverseMass();
+	if (totalMass == 0)
+	{
+		return;
+	}
+	transformA.SetPosition(transformA.GetPosition() - p.normal * p.penetration * (physA->GetInverseMass() / totalMass));
+	transformB.SetPosition(transformB.GetPosition() + p.normal * p.penetration * (physB->GetInverseMass() / totalMass));
+
+	physA->AddForceAtPosition(-p.normal * p.penetration * penaltyScale, p.localA + a.GetTransform().GetPosition());
+	physB->AddForceAtPosition(p.normal * p.penetration * penaltyScale, p.localB + b.GetTransform().GetPosition());
+}
+
 /*
 
 Later, we replace the BasicCollisionDetection method with a broadphase
@@ -442,8 +487,22 @@ void PhysicsSystem::NarrowPhase() {
 		{
 			info.framesLeft = numCollisionFrames;
 			bool eventOnly = info.a->GetPhysicsObject()->HasChannel(PhysCh_EventOnly) | info.b->GetPhysicsObject()->HasChannel(PhysCh_EventOnly);
-			if(!eventOnly)
-				ImpulseResolveCollision(*info.a, *info.b, info.point);
+			if (!eventOnly)
+			{
+				if (info.a->GetPhysicsObject()->GetCollisionMethod() == CM_Projection || info.b->GetPhysicsObject()->GetCollisionMethod() == CM_Projection)
+				{
+					ProjectionResolveCollision(*info.a, *info.b, info.point);
+				}
+				else if (info.a->GetPhysicsObject()->GetCollisionMethod() == CM_Penalty || info.b->GetPhysicsObject()->GetCollisionMethod() == CM_Penalty)
+				{
+					PenaltyResolveCollision(*info.a, *info.b, info.point);
+				}
+				else
+				{
+					ImpulseResolveCollision(*info.a, *info.b, info.point);
+				}
+			}
+				//ImpulseResolveCollision(*info.a, *info.b, info.point);
 			allCollisions.insert(info);
 		}
 	}

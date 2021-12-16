@@ -19,11 +19,13 @@ namespace NCL {
 				if (forceDir.Length() > 0)
 				{
 					forceDir.Normalise();
-				
+
+					transform.SetPosition(transform.GetPosition() + physicsObject->GetLinearVelocity() * dt);
+
 					Vector3 newVelocity = physicsObject->GetLinearVelocity() + forceDir * 100 * dt;
 					physicsObject->SetLinearVelocity(newVelocity);
 
-					transform.SetPosition(transform.GetPosition() + physicsObject->GetLinearVelocity() * dt);
+					
 				}
 			};
 			

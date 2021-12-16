@@ -18,6 +18,13 @@ namespace NCL {
 			PhysCh_NoForce = 1 << 5,
 		};
 
+		enum CollisionMethod
+		{
+			CM_Impulse,
+			CM_Projection,
+			CM_Penalty
+		};
+
 
 		class PhysicsObject	{
 		public:
@@ -86,6 +93,10 @@ namespace NCL {
 			bool CanCollide(PhysicsObject* b) const;
 			bool HasChannel(PhysicsChannel channel) const;
 
+			CollisionMethod GetCollisionMethod() const { return cMethod; };
+			void SetCollisionMethod(CollisionMethod method) { cMethod = method; };
+
+
 		protected:
 			const CollisionVolume* volume;
 			Transform*		transform;
@@ -107,6 +118,8 @@ namespace NCL {
 
 			//channel
 			unsigned int physicsChannel;
+			//collision
+			CollisionMethod cMethod = CM_Impulse;
 
 		};
 	}

@@ -24,7 +24,14 @@ void BallLevelMenu::Draw()
     ImGui::BulletText(TimeStr.c_str());
     std::string ScoreStr = "Score: " + std::to_string(score);
     ImGui::BulletText(ScoreStr.c_str());
-    ImGui::BulletText(statusStr.c_str());
+    if (score > 0)
+    {
+        ImGui::BulletText(statusStr.c_str());
+    }
+    else
+    {
+        ImGui::BulletText("You lose!");
+    }
     ImGui::Separator();
     ImGui::Text("Control Guide:");
     ImGui::BulletText("Use mouse to select which board you want to control");
@@ -41,6 +48,8 @@ void BallLevelMenu::Update(float dt)
 	if (!reachGoal)
 	{
 		timeCount += dt;
+        if(score > 0)
+            score = std::max(int(100 + extraScore - floor(timeCount * 2)), 0);
 	}
-	score = std::max(int(1000 - floor(timeCount / 5)), 0);
+	
 }

@@ -140,6 +140,7 @@
     <ClInclude Include="BehaviourSelector.h" />
     <ClInclude Include="BehaviourSequence.h" />
     <ClInclude Include="CapsuleVolume.h" />
+    <ClInclude Include="PlaneVolume.h" />
     <ClInclude Include="SliderConstraint.h" />
     <ClInclude Include="HingeConstraint.h" />
     <ClInclude Include="NavigationGrid.h" />

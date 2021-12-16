@@ -58,7 +58,7 @@ void MazeGameMode::SetupScene()
 	gameInst->AddWallToWorld(Vector3(45, 10, 30), Vector3(5, 10, 20), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_07");
 	gameInst->AddWallToWorld(Vector3(-55, 10, 45), Vector3(5, 10, 25), Vector4(0.8f, 0.8f, 0.8f, 1), "Wall_C_08");
 
-	AddRotateGate(Vector3(75, 10, -65), Vector3(.5, 10, 5), "Gate_01");
+	AddRotateGate(Vector3(75, 10, -65), Vector3(.5, 10, 5), "Gate_01")->GetPhysicsObject()->SetCollisionMethod(CM_Penalty);
 	
 	player = AddPlayer();
 	player->GetRenderObject()->SetColour(Vector4(0.3, 1, 0.3, 1));

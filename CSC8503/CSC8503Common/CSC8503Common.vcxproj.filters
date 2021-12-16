@@ -138,6 +138,9 @@
     <ClInclude Include="BehaviourParallel.h">
       <Filter>Behaviour</Filter>
     </ClInclude>
+    <ClInclude Include="PlaneVolume.h">
+      <Filter>CollisionDetection</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameWorld.cpp">

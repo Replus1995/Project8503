@@ -8,6 +8,7 @@
 * Press Esc to open pause menu.
 ## Features
 * Compiled with win10 sdk 10.0.19041.0 and build tool v142
+* Physics channel. (determine whether an object can be selected by ray-casting or whether can collide with another object.)
 * Ray capsule intersection.
 * OBB vs Sphere collision detection.
 * OBB vs OBB collision detection.

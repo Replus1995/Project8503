@@ -50,6 +50,14 @@ namespace NCL {
 				if (Window::GetKeyboard()->KeyDown(KeyboardKeys::DOWN)) {
 					physicsObject->AddForce(Vector3(0, 0, 1) * moveForce);
 				}
+
+				if (Window::GetKeyboard()->KeyDown(KeyboardKeys::O)) {
+					physicsObject->AddTorque(Vector3(0, -30, 0));
+				}
+
+				if (Window::GetKeyboard()->KeyDown(KeyboardKeys::P)) {
+					physicsObject->AddTorque(Vector3(0, 30, 0));
+				}
 			};
 
 		protected:
