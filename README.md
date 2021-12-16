@@ -9,10 +9,12 @@
 ## Features
 * Compiled with win10 sdk 10.0.19041.0 and build tool v142
 * Physics channel. (determine whether an object can be selected by ray-casting or whether can collide with another object.)
+* Collision Method. (Projection/Penalty/Impulse)
 * Ray capsule intersection.
 * OBB vs Sphere collision detection.
 * OBB vs OBB collision detection.
 * Capsule vs Sphere collision detection.
+* Plane vs Sphere collision detection.
 * Impulse friction resolution.
 * Menu state using PushdownAutomata.
 * Slider constraint.
