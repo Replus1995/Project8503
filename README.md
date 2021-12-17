@@ -1,5 +1,5 @@
 # Project8503
-## CSC8502 course work
+## CSC8503 course work
 * Compiled binary can be downloaded at https://github.com/rejewl/Project8503
 ## How to control
 * Use A|S|D|W|Shift|Ctrl to translate camera.
