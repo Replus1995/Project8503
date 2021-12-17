@@ -23,6 +23,7 @@ namespace NCL {
 					transform.SetPosition(transform.GetPosition() + physicsObject->GetLinearVelocity() * dt);
 
 					Vector3 newVelocity = physicsObject->GetLinearVelocity() + forceDir * 100 * dt;
+					newVelocity *= (1 - 0.4f * dt);
 					physicsObject->SetLinearVelocity(newVelocity);
 
 					
